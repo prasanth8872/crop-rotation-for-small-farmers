@@ -1,0 +1,82 @@
+{% extends 'layout.html' %}
+
+{% block title %}Sign In - Quantum Precision Agriculture{% endblock %}
+
+{% block content %}
+<section class="py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card shadow border-0">
+                    <div class="card-header bg-primary text-white">
+                        <h3 class="mb-0">Sign In</h3>
+                    </div>
+                    <div class="card-body p-4">
+                        <form method="POST" action="{{ url_for('login') }}">
+                            {{ form.hidden_tag() }}
+                            
+                            <div class="mb-3">
+                                <label for="username" class="form-label">Username</label>
+                                {{ form.username(class="form-control", id="username", placeholder="Enter your username") }}
+                                {% if form.username.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.username.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="password" class="form-label">Password</label>
+                                {{ form.password(class="form-control", id="password", placeholder="Enter your password") }}
+                                {% if form.password.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.password.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="mb-3 form-check">
+                                {{ form.remember_me(class="form-check-input", id="remember_me") }}
+                                <label class="form-check-label" for="remember_me">Remember me</label>
+                            </div>
+                            
+                            <div class="d-grid gap-2">
+                                {{ form.submit(class="btn btn-primary btn-lg") }}
+                            </div>
+                        </form>
+                    </div>
+                    <div class="card-footer bg-light p-3 text-center">
+                        <p class="mb-0">Don't have an account? <a href="{{ url_for('register') }}">Register here</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- About Section -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-6 mb-4 mb-md-0">
+                <img src="https://images.unsplash.com/photo-1720386063956-00296002a701" alt="Agricultural field" class="img-fluid rounded shadow">
+            </div>
+            <div class="col-md-6">
+                <h2>Why Choose Quantum Precision Agriculture?</h2>
+                <p class="lead">Our platform helps small-scale farmers in Coimbatore maximize yield and minimize resource usage through advanced quantum computing algorithms.</p>
+                <ul class="list-unstyled">
+                    <li class="mb-2"><i class="bi bi-check-circle-fill text-primary me-2"></i> Personalized crop recommendations</li>
+                    <li class="mb-2"><i class="bi bi-check-circle-fill text-primary me-2"></i> Real-time weather monitoring</li>
+                    <li class="mb-2"><i class="bi bi-check-circle-fill text-primary me-2"></i> Soil moisture tracking</li>
+                    <li class="mb-2"><i class="bi bi-check-circle-fill text-primary me-2"></i> Location-based insights</li>
+                    <li class="mb-2"><i class="bi bi-check-circle-fill text-primary me-2"></i> Community knowledge sharing</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

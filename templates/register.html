@@ -1,0 +1,209 @@
+{% extends 'layout.html' %}
+
+{% block title %}Register - Quantum Precision Agriculture{% endblock %}
+
+{% block content %}
+<section class="py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card shadow border-0">
+                    <div class="card-header bg-primary text-white">
+                        <h3 class="mb-0">Register for Quantum AgriTech</h3>
+                    </div>
+                    <div class="card-body p-4">
+                        <form method="POST" action="{{ url_for('register') }}">
+                            {{ form.hidden_tag() }}
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="first_name" class="form-label">First Name</label>
+                                    {{ form.first_name(class="form-control", id="first_name", placeholder="Enter your first name") }}
+                                    {% if form.first_name.errors %}
+                                        <div class="text-danger">
+                                            {% for error in form.first_name.errors %}
+                                                <small>{{ error }}</small>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <label for="last_name" class="form-label">Last Name</label>
+                                    {{ form.last_name(class="form-control", id="last_name", placeholder="Enter your last name") }}
+                                    {% if form.last_name.errors %}
+                                        <div class="text-danger">
+                                            {% for error in form.last_name.errors %}
+                                                <small>{{ error }}</small>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="username" class="form-label">Username</label>
+                                    {{ form.username(class="form-control", id="username", placeholder="Choose a username") }}
+                                    {% if form.username.errors %}
+                                        <div class="text-danger">
+                                            {% for error in form.username.errors %}
+                                                <small>{{ error }}</small>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <label for="email" class="form-label">Email Address</label>
+                                    {{ form.email(class="form-control", id="email", placeholder="Enter your email") }}
+                                    {% if form.email.errors %}
+                                        <div class="text-danger">
+                                            {% for error in form.email.errors %}
+                                                <small>{{ error }}</small>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="password" class="form-label">Password</label>
+                                    {{ form.password(class="form-control", id="password", placeholder="Create a password") }}
+                                    {% if form.password.errors %}
+                                        <div class="text-danger">
+                                            {% for error in form.password.errors %}
+                                                <small>{{ error }}</small>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <label for="confirm_password" class="form-label">Confirm Password</label>
+                                    {{ form.confirm_password(class="form-control", id="confirm_password", placeholder="Confirm your password") }}
+                                    {% if form.confirm_password.errors %}
+                                        <div class="text-danger">
+                                            {% for error in form.confirm_password.errors %}
+                                                <small>{{ error }}</small>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="phone" class="form-label">Phone Number</label>
+                                {{ form.phone(class="form-control", id="phone", placeholder="Enter your phone number") }}
+                                {% if form.phone.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.phone.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="address" class="form-label">Address</label>
+                                {{ form.address(class="form-control", id="address", placeholder="Enter your address", rows=2) }}
+                                {% if form.address.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.address.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="city" class="form-label">City</label>
+                                    {{ form.city(class="form-control", id="city", value="Coimbatore") }}
+                                    {% if form.city.errors %}
+                                        <div class="text-danger">
+                                            {% for error in form.city.errors %}
+                                                <small>{{ error }}</small>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <label for="state" class="form-label">State</label>
+                                    {{ form.state(class="form-control", id="state", value="Tamil Nadu") }}
+                                    {% if form.state.errors %}
+                                        <div class="text-danger">
+                                            {% for error in form.state.errors %}
+                                                <small>{{ error }}</small>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="d-grid gap-2">
+                                {{ form.submit(class="btn btn-primary btn-lg") }}
+                            </div>
+                        </form>
+                    </div>
+                    <div class="card-footer bg-light p-3 text-center">
+                        <p class="mb-0">Already have an account? <a href="{{ url_for('login') }}">Sign in here</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Benefits Section -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8 text-center">
+                <h2 class="mb-4">Benefits of Registering</h2>
+                <p class="lead mb-5">Join our community of small-scale farmers in Coimbatore benefiting from quantum agricultural technology</p>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <div class="feature-icon mb-3">
+                            <i class="bi bi-graph-up"></i>
+                        </div>
+                        <h3 class="h4 mb-3">Increased Crop Yield</h3>
+                        <p class="card-text">Our precision agriculture recommendations can help increase your crop yield by up to 30%.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <div class="feature-icon mb-3">
+                            <i class="bi bi-droplet-half"></i>
+                        </div>
+                        <h3 class="h4 mb-3">Water Conservation</h3>
+                        <p class="card-text">Optimize irrigation schedules based on soil moisture data and weather forecasts.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <div class="feature-icon mb-3">
+                            <i class="bi bi-people"></i>
+                        </div>
+                        <h3 class="h4 mb-3">Community Knowledge</h3>
+                        <p class="card-text">Share experiences and learn from other farmers in the Coimbatore region.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

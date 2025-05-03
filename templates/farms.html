@@ -1,0 +1,648 @@
+{% extends 'layout.html' %}
+
+{% block title %}My Farms - Quantum Precision Agriculture{% endblock %}
+
+{% block content %}
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6 mb-4 mb-lg-0">
+                <h1>Farm Management</h1>
+                <p class="lead">Manage your farms and track their performance using our quantum precision agriculture platform.</p>
+                <p>Add new farms, monitor soil conditions, and record crop cycles to get personalized recommendations for optimal yield.</p>
+            </div>
+            <div class="col-lg-6">
+                <img src="https://images.unsplash.com/photo-1560493676-04071c5f467b" alt="Farm technology" class="img-fluid rounded shadow">
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="py-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8">
+                <!-- Add New Farm Form -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-white">
+                        <h2 class="h3 mb-0">Add New Farm</h2>
+                    </div>
+                    <div class="card-body p-4">
+                        <form method="POST" action="{{ url_for('farms') }}">
+                            {{ form.hidden_tag() }}
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-6 mb-3 mb-md-0">
+                                    <label for="name" class="form-label">Farm Name</label>
+                                    {{ form.name(class="form-control", id="name", placeholder="Enter farm name") }}
+                                    {% if form.name.errors %}
+                                        <div class="text-danger mt-1">
+                                            {% for error in form.name.errors %}
+                                                <small>{{ error }}</small>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="location" class="form-label">Location</label>
+                                    {{ form.location(class="form-control", id="location", placeholder="e.g., Pollachi, Annur, Mettupalayam") }}
+                                    {% if form.location.errors %}
+                                        <div class="text-danger mt-1">
+                                            {% for error in form.location.errors %}
+                                                <small>{{ error }}</small>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-6 mb-3 mb-md-0">
+                                    <label for="area" class="form-label">Area (in acres)</label>
+                                    {{ form.area(class="form-control", id="area", placeholder="e.g., 2.5") }}
+                                    {% if form.area.errors %}
+                                        <div class="text-danger mt-1">
+                                            {% for error in form.area.errors %}
+                                                <small>{{ error }}</small>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="soil_type" class="form-label">Soil Type</label>
+                                    {{ form.soil_type(class="form-select", id="soil_type") }}
+                                    {% if form.soil_type.errors %}
+                                        <div class="text-danger mt-1">
+                                            {% for error in form.soil_type.errors %}
+                                                <small>{{ error }}</small>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="d-grid">
+                                {{ form.submit(class="btn btn-primary btn-lg") }}
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                
+                <!-- Farms List -->
+                <h2 class="h3 mb-4">My Farms</h2>
+                
+                {% if farms %}
+                    <div class="row">
+                        {% for farm in farms %}
+                            <div class="col-md-6 mb-4">
+                                <div class="card border-0 shadow-sm h-100">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-start mb-3">
+                                            <h3 class="h4 mb-0">{{ farm.name }}</h3>
+                                            <div class="dropdown">
+                                                <button class="btn btn-sm btn-outline-secondary" type="button" id="farmActions{{ farm.id }}" data-bs-toggle="dropdown" aria-expanded="false">
+                                                    <i class="bi bi-three-dots-vertical"></i>
+                                                </button>
+                                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="farmActions{{ farm.id }}">
+                                                    <li><a class="dropdown-item" href="#" onclick="editFarm({{ farm.id }})"><i class="bi bi-pencil me-2"></i> Edit</a></li>
+                                                    <li><a class="dropdown-item" href="#" onclick="addCropCycle({{ farm.id }})"><i class="bi bi-plus-circle me-2"></i> Add Crop Cycle</a></li>
+                                                    <li><a class="dropdown-item" href="#" onclick="recordSoilData({{ farm.id }})"><i class="bi bi-moisture me-2"></i> Record Soil Data</a></li>
+                                                    <li><hr class="dropdown-divider"></li>
+                                                    <li><a class="dropdown-item text-danger" href="#" onclick="deleteFarm({{ farm.id }})"><i class="bi bi-trash me-2"></i> Delete</a></li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <p class="mb-1"><i class="bi bi-geo-alt me-2 text-primary"></i>{{ farm.location }}</p>
+                                            <p class="mb-1"><i class="bi bi-rulers me-2 text-primary"></i>{{ farm.area }} acres</p>
+                                            <p class="mb-1"><i class="bi bi-moisture me-2 text-primary"></i>{{ farm.soil_type|replace('_', ' ')|title }}</p>
+                                            <p class="mb-0"><i class="bi bi-calendar3 me-2 text-primary"></i>Added on {{ farm.created_at.strftime('%d %b %Y') }}</p>
+                                        </div>
+                                        
+                                        <div class="card bg-light mb-3">
+                                            <div class="card-body p-3">
+                                                <h4 class="h6 mb-2">Current/Latest Crop</h4>
+                                                {% if farm.crops %}
+                                                    {% set latest_crop = farm.crops|sort(attribute='created_at', reverse=true)|first %}
+                                                    <p class="mb-1"><strong>Crop:</strong> {{ latest_crop.crop_name }}</p>
+                                                    <p class="mb-1"><strong>Planted:</strong> {{ latest_crop.planting_date }}</p>
+                                                    <p class="mb-0"><strong>Expected Harvest:</strong> {{ latest_crop.harvesting_date or 'In progress' }}</p>
+                                                {% else %}
+                                                    <p class="text-muted mb-0">No crop cycles recorded yet</p>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="d-grid">
+                                            <button class="btn btn-outline-primary" type="button" onclick="viewFarmDetails({{ farm.id }})">
+                                                View Farm Details
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="alert alert-info text-center">
+                        <i class="bi bi-info-circle-fill me-2"></i>
+                        You haven't added any farms yet. Use the form above to add your first farm.
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div class="col-lg-4">
+                <!-- Current Weather -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-white">
+                        <h3 class="h5 mb-0">Current Weather</h3>
+                    </div>
+                    <div class="card-body">
+                        <div id="weather-widget" class="weather-widget" data-city="Coimbatore">
+                            <!-- Weather data will be loaded via JavaScript -->
+                            <div class="text-center p-3">
+                                <div class="spinner-border text-light" role="status">
+                                    <span class="visually-hidden">Loading weather data...</span>
+                                </div>
+                                <p class="mt-2 mb-0">Loading current weather...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Location Detection -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-white">
+                        <h3 class="h5 mb-0">Detect Farm Location</h3>
+                    </div>
+                    <div class="card-body">
+                        <p>Use your current location to automatically fill the location field when adding a new farm.</p>
+                        <p id="location-display">Click the button below to detect your location</p>
+                        <button id="get-location" class="btn btn-primary w-100">
+                            <i class="bi bi-geo-alt me-2"></i> Detect My Location
+                            <span id="location-spinner" class="spinner-border spinner-border-sm ms-2" role="status" style="display: none;"></span>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Farm Tips -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-white">
+                        <h3 class="h5 mb-0">Farm Management Tips</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex mb-3">
+                            <div class="me-3 text-primary">
+                                <i class="bi bi-graph-up fs-4"></i>
+                            </div>
+                            <div>
+                                <h4 class="h6 mb-1">Regular Monitoring</h4>
+                                <p class="mb-0 small">Record soil data at least once a month for optimal recommendations.</p>
+                            </div>
+                        </div>
+                        <div class="d-flex mb-3">
+                            <div class="me-3 text-success">
+                                <i class="bi bi-arrow-repeat fs-4"></i>
+                            </div>
+                            <div>
+                                <h4 class="h6 mb-1">Crop Rotation</h4>
+                                <p class="mb-0 small">Maintain detailed records of all crop cycles to improve future recommendations.</p>
+                            </div>
+                        </div>
+                        <div class="d-flex mb-3">
+                            <div class="me-3 text-warning">
+                                <i class="bi bi-droplet-half fs-4"></i>
+                            </div>
+                            <div>
+                                <h4 class="h6 mb-1">Irrigation Planning</h4>
+                                <p class="mb-0 small">Use our weather forecasts to optimize your irrigation schedule.</p>
+                            </div>
+                        </div>
+                        <div class="d-flex">
+                            <div class="me-3 text-info">
+                                <i class="bi bi-map fs-4"></i>
+                            </div>
+                            <div>
+                                <h4 class="h6 mb-1">Field Mapping</h4>
+                                <p class="mb-0 small">For larger farms, consider adding multiple entries for different sections with varying soil types.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Quantum Agriculture Benefits -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-white">
+                        <h3 class="h5 mb-0">Benefits of Quantum Agriculture</h3>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-unstyled">
+                            <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> 20-30% increase in crop yield</li>
+                            <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> 25-40% reduction in water usage</li>
+                            <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> 15-25% lower fertilizer requirements</li>
+                            <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> Enhanced soil health and sustainability</li>
+                            <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> Optimized crop rotation planning</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Add Crop Cycle Modal -->
+<div class="modal fade" id="cropCycleModal" tabindex="-1" aria-labelledby="cropCycleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="cropCycleModalLabel">Add New Crop Cycle</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="cropCycleForm">
+                    <input type="hidden" id="farmIdCrop" name="farm_id">
+                    
+                    <div class="mb-3">
+                        <label for="cropName" class="form-label">Crop Name</label>
+                        <input type="text" class="form-control" id="cropName" name="crop_name" required placeholder="e.g., Rice, Cotton, Maize">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="plantingDate" class="form-label">Planting Date</label>
+                        <input type="date" class="form-control" id="plantingDate" name="planting_date" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="harvestingDate" class="form-label">Expected Harvesting Date</label>
+                        <input type="date" class="form-control" id="harvestingDate" name="harvesting_date">
+                        <small class="text-muted">Leave blank if not yet known</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="yieldAmount" class="form-label">Expected Yield (kg)</label>
+                        <input type="number" step="0.01" class="form-control" id="yieldAmount" name="yield_amount" placeholder="e.g., 1000">
+                        <small class="text-muted">Estimate is fine, you can update this later</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="cropNotes" class="form-label">Notes</label>
+                        <textarea class="form-control" id="cropNotes" name="notes" rows="3" placeholder="Any additional information about this crop cycle..."></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="saveCropCycleBtn">Save Crop Cycle</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Record Soil Data Modal -->
+<div class="modal fade" id="soilDataModal" tabindex="-1" aria-labelledby="soilDataModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="soilDataModalLabel">Record Soil Data</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="soilDataForm">
+                    <input type="hidden" id="farmIdSoil" name="farm_id">
+                    
+                    <div class="mb-3">
+                        <label for="moistureLevel" class="form-label">Moisture Level (%)</label>
+                        <input type="number" step="0.01" class="form-control" id="moistureLevel" name="moisture_level" min="0" max="100" required placeholder="e.g., 45.5">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="phValue" class="form-label">pH Value</label>
+                        <input type="number" step="0.1" class="form-control" id="phValue" name="ph_value" min="0" max="14" required placeholder="e.g., 6.5">
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col">
+                            <label for="nitrogen" class="form-label">Nitrogen (ppm)</label>
+                            <input type="number" step="0.01" class="form-control" id="nitrogen" name="nitrogen" min="0" required placeholder="e.g., 120">
+                        </div>
+                        <div class="col">
+                            <label for="phosphorus" class="form-label">Phosphorus (ppm)</label>
+                            <input type="number" step="0.01" class="form-control" id="phosphorus" name="phosphorus" min="0" required placeholder="e.g., 45">
+                        </div>
+                        <div class="col">
+                            <label for="potassium" class="form-label">Potassium (ppm)</label>
+                            <input type="number" step="0.01" class="form-control" id="potassium" name="potassium" min="0" required placeholder="e.g., 80">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="soilTemperature" class="form-label">Soil Temperature (°C)</label>
+                        <input type="number" step="0.1" class="form-control" id="soilTemperature" name="temperature" min="0" required placeholder="e.g., 28.5">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="saveSoilDataBtn">Save Soil Data</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Farm Details Modal -->
+<div class="modal fade" id="farmDetailsModal" tabindex="-1" aria-labelledby="farmDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="farmDetailsModalLabel">Farm Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="farmDetailsContent">
+                    <!-- Farm details will be loaded dynamically -->
+                    <div class="text-center py-4">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading farm details...</span>
+                        </div>
+                        <p class="mt-2 mb-0">Loading farm details...</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/weather.js') }}"></script>
+<script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize crop cycle modal functionality
+        const cropCycleModal = new bootstrap.Modal(document.getElementById('cropCycleModal'));
+        const saveCropCycleBtn = document.getElementById('saveCropCycleBtn');
+        
+        if (saveCropCycleBtn) {
+            saveCropCycleBtn.addEventListener('click', function() {
+                // In a real app, this would submit the form via AJAX
+                // For now, we'll just show a success message
+                alert('Crop cycle would be saved in a real app');
+                cropCycleModal.hide();
+            });
+        }
+        
+        // Initialize soil data modal functionality
+        const soilDataModal = new bootstrap.Modal(document.getElementById('soilDataModal'));
+        const saveSoilDataBtn = document.getElementById('saveSoilDataBtn');
+        
+        if (saveSoilDataBtn) {
+            saveSoilDataBtn.addEventListener('click', function() {
+                // In a real app, this would submit the form via AJAX
+                // For now, we'll just show a success message
+                alert('Soil data would be saved in a real app');
+                soilDataModal.hide();
+            });
+        }
+    });
+    
+    // Function to open add crop cycle modal
+    function addCropCycle(farmId) {
+        const farmIdInput = document.getElementById('farmIdCrop');
+        if (farmIdInput) {
+            farmIdInput.value = farmId;
+        }
+        
+        // Set default dates
+        const plantingDateInput = document.getElementById('plantingDate');
+        if (plantingDateInput) {
+            plantingDateInput.value = new Date().toISOString().split('T')[0];
+        }
+        
+        // Show the modal
+        const cropCycleModal = new bootstrap.Modal(document.getElementById('cropCycleModal'));
+        cropCycleModal.show();
+    }
+    
+    // Function to open record soil data modal
+    function recordSoilData(farmId) {
+        const farmIdInput = document.getElementById('farmIdSoil');
+        if (farmIdInput) {
+            farmIdInput.value = farmId;
+        }
+        
+        // Show the modal
+        const soilDataModal = new bootstrap.Modal(document.getElementById('soilDataModal'));
+        soilDataModal.show();
+    }
+    
+    // Function to edit farm
+    function editFarm(farmId) {
+        alert(`Edit farm with ID: ${farmId} (this would open an edit form in a real app)`);
+    }
+    
+    // Function to delete farm
+    function deleteFarm(farmId) {
+        if (confirm(`Are you sure you want to delete this farm? This action cannot be undone.`)) {
+            alert(`Farm with ID: ${farmId} would be deleted in a real app`);
+        }
+    }
+    
+    // Function to view farm details
+    function viewFarmDetails(farmId) {
+        // In a real app, this would fetch farm details from the server
+        // For now, we'll just show a placeholder
+        
+        const farmDetailsModal = new bootstrap.Modal(document.getElementById('farmDetailsModal'));
+        farmDetailsModal.show();
+        
+        // Simulate loading
+        setTimeout(function() {
+            const farmDetailsContent = document.getElementById('farmDetailsContent');
+            
+            if (farmDetailsContent) {
+                farmDetailsContent.innerHTML = `
+                    <div class="row">
+                        <div class="col-md-6 mb-4">
+                            <h4>Farm Information</h4>
+                            <ul class="list-group list-group-flush">
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    Farm ID
+                                    <span class="badge bg-primary rounded-pill">${farmId}</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    Name
+                                    <span>Example Farm</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    Location
+                                    <span>Coimbatore South</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    Area
+                                    <span>2.5 acres</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    Soil Type
+                                    <span>Red Soil</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    Added On
+                                    <span>01 Jan 2023</span>
+                                </li>
+                            </ul>
+                            
+                            <h4 class="mt-4">Soil Health</h4>
+                            <div class="chart-container mt-3">
+                                <canvas id="farm-soil-chart"></canvas>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-4">
+                            <h4>Crop Cycles</h4>
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Crop</th>
+                                            <th>Planted</th>
+                                            <th>Harvested</th>
+                                            <th>Yield</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>Rice</td>
+                                            <td>15 Jan 2023</td>
+                                            <td>10 May 2023</td>
+                                            <td>1,200 kg</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Groundnut</td>
+                                            <td>01 Jun 2023</td>
+                                            <td>20 Sep 2023</td>
+                                            <td>800 kg</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Cotton</td>
+                                            <td>10 Oct 2023</td>
+                                            <td>In progress</td>
+                                            <td>-</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <h4 class="mt-4">Yield Trend</h4>
+                            <div class="chart-container mt-3">
+                                <canvas id="farm-yield-chart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <h4>Recommendations for This Farm</h4>
+                            <div class="alert alert-success">
+                                <i class="bi bi-lightbulb-fill me-2"></i>
+                                <strong>Next Recommended Crop:</strong> Based on your soil type (Red Soil) and previous crop (Cotton), we recommend planting <strong>Pulses</strong> for your next cycle.
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <div class="card bg-light">
+                                        <div class="card-body">
+                                            <h5 class="card-title h6">Soil Improvement</h5>
+                                            <p class="card-text small">Add organic compost to improve soil structure and water retention capacity.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <div class="card bg-light">
+                                        <div class="card-body">
+                                            <h5 class="card-title h6">Irrigation Plan</h5>
+                                            <p class="card-text small">Based on current moisture levels, irrigate every 3-4 days during vegetative growth.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <div class="card bg-light">
+                                        <div class="card-body">
+                                            <h5 class="card-title h6">Pest Management</h5>
+                                            <p class="card-text small">Monitor for aphids and whiteflies which commonly affect crops in this rotation.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                // Initialize the charts for farm details
+                const soilCtx = document.getElementById('farm-soil-chart').getContext('2d');
+                new Chart(soilCtx, {
+                    type: 'radar',
+                    data: {
+                        labels: ['Moisture', 'pH', 'Nitrogen', 'Phosphorus', 'Potassium', 'Organic Matter'],
+                        datasets: [{
+                            label: 'Current Levels',
+                            data: [65, 70, 55, 50, 65, 60],
+                            backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            borderWidth: 2
+                        }, {
+                            label: 'Optimal Levels',
+                            data: [70, 75, 70, 65, 70, 75],
+                            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            r: {
+                                angleLines: {
+                                    display: true
+                                }
+                            }
+                        }
+                    }
+                });
+                
+                const yieldCtx = document.getElementById('farm-yield-chart').getContext('2d');
+                new Chart(yieldCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Rice (Jan-May)', 'Groundnut (Jun-Sep)', 'Cotton (Oct-)'],
+                        datasets: [{
+                            label: 'Yield (kg)',
+                            data: [1200, 800, 0],
+                            backgroundColor: [
+                                'rgba(75, 192, 192, 0.6)',
+                                'rgba(255, 159, 64, 0.6)',
+                                'rgba(54, 162, 235, 0.6)'
+                            ],
+                            borderColor: [
+                                'rgba(75, 192, 192, 1)',
+                                'rgba(255, 159, 64, 1)',
+                                'rgba(54, 162, 235, 1)'
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            }
+        }, 1000);
+    }
+</script>
+{% endblock %}

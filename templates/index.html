@@ -1,0 +1,200 @@
+{% extends 'layout.html' %}
+
+{% block title %}Quantum Precision Agriculture for Coimbatore Farmers{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h1>Quantum Precision Agriculture</h1>
+                <p>Empowering small-scale farmers in Coimbatore with advanced agricultural technology, crop rotation recommendations, and real-time weather monitoring.</p>
+                <div class="d-flex flex-wrap">
+                    {% if current_user.is_authenticated %}
+                        <a href="{{ url_for('dashboard') }}" class="btn btn-light btn-lg me-3 mb-3">My Dashboard</a>
+                        <a href="{{ url_for('crop_recommendation') }}" class="btn btn-accent btn-lg mb-3">Get Crop Recommendations</a>
+                    {% else %}
+                        <a href="{{ url_for('register') }}" class="btn btn-light btn-lg me-3 mb-3">Register Now</a>
+                        <a href="{{ url_for('login') }}" class="btn btn-accent btn-lg mb-3">Sign In</a>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-lg-6 mt-4 mt-lg-0">
+                <img src="https://images.unsplash.com/photo-1720386052134-81961c684000" alt="Agricultural fields in Coimbatore" class="img-fluid rounded shadow">
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Current Weather -->
+<section class="py-4">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div id="weather-widget" class="weather-widget mb-4" data-city="Coimbatore">
+                    <!-- Weather data will be loaded via JavaScript -->
+                    <div class="text-center p-4">
+                        <div class="spinner-border text-light" role="status">
+                            <span class="visually-hidden">Loading weather data...</span>
+                        </div>
+                        <p class="mt-2 mb-0">Loading current weather...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2>Quantum Agricultural Solutions</h2>
+            <p class="lead">Enhance your farming practices with our advanced technology</p>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-4 mb-4">
+                <div class="card feature-card h-100">
+                    <div class="card-body">
+                        <div class="feature-icon">
+                            <i class="bi bi-arrow-repeat"></i>
+                        </div>
+                        <h3 class="card-title h4">Smart Crop Rotation</h3>
+                        <p class="card-text">Get personalized crop rotation recommendations based on your soil type, previous crops, and local weather patterns.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4 mb-4">
+                <div class="card feature-card h-100">
+                    <div class="card-body">
+                        <div class="feature-icon">
+                            <i class="bi bi-cloud-sun"></i>
+                        </div>
+                        <h3 class="card-title h4">Real-time Weather</h3>
+                        <p class="card-text">Access current weather data and forecasts specifically for Coimbatore region to plan your farming activities.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4 mb-4">
+                <div class="card feature-card h-100">
+                    <div class="card-body">
+                        <div class="feature-icon">
+                            <i class="bi bi-moisture"></i>
+                        </div>
+                        <h3 class="card-title h4">Soil Analysis</h3>
+                        <p class="card-text">Monitor soil moisture levels and nutrient content to optimize irrigation and fertilization schedules.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Featured Crops -->
+<section class="py-5">
+    <div class="container">
+        <h2 class="text-center mb-5">Featured Crops for Coimbatore Region</h2>
+        
+        <div class="row">
+            {% for crop in featured_crops %}
+            <div class="col-md-4 mb-4">
+                <div class="crop-card">
+                    <img src="{{ url_for('static', filename='img/crops/' ~ crop.name.lower() ~ '.jpg') }}" 
+                         onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1528839390497-a161db4bac71';" 
+                         alt="{{ crop.name }}" class="card-img-top">
+                    <div class="crop-card-body">
+                        <h3 class="crop-name">{{ crop.name }}</h3>
+                        <p class="crop-details">
+                            <span><i class="bi bi-droplet-fill me-2"></i>Water: {{ crop.water_requirements }}</span>
+                            <span><i class="bi bi-thermometer-half me-2"></i>Temp: {{ crop.optimal_temperature }}</span>
+                            <span><i class="bi bi-calendar3 me-2"></i>Duration: {{ crop.growth_duration }}</span>
+                        </p>
+                        <a href="{{ url_for('crop_guide') }}#{{ crop.name.lower().replace(' ', '-') }}" class="btn btn-sm btn-outline-primary mt-2">Learn More</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div class="text-center mt-4">
+            <a href="{{ url_for('crop_guide') }}" class="btn btn-primary">View All Crops</a>
+        </div>
+    </div>
+</section>
+
+<!-- Testimonials -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <h2 class="text-center mb-5">What Farmers Say</h2>
+        
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div id="testimonialCarousel" class="carousel slide" data-bs-ride="carousel">
+                    <div class="carousel-inner">
+                        <div class="carousel-item active">
+                            <div class="card border-0 shadow">
+                                <div class="card-body p-5 text-center">
+                                    <img src="https://images.unsplash.com/photo-1560493676-04071c5f467b" alt="Farmer" class="rounded-circle mb-3" width="80" height="80" style="object-fit: cover;">
+                                    <p class="lead mb-4">"The crop rotation recommendations have increased my yield by 30% this season. The soil moisture tracking has helped me optimize my irrigation schedule."</p>
+                                    <h5 class="mb-1">Rajesh Kumar</h5>
+                                    <p class="text-muted">Small-scale farmer, Coimbatore</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="carousel-item">
+                            <div class="card border-0 shadow">
+                                <div class="card-body p-5 text-center">
+                                    <img src="https://images.unsplash.com/photo-1528158477878-c8036dc3c31a" alt="Farmer" class="rounded-circle mb-3" width="80" height="80" style="object-fit: cover;">
+                                    <p class="lead mb-4">"The real-time weather updates help me plan my farm activities better. This platform has revolutionized how I approach farming in this changing climate."</p>
+                                    <h5 class="mb-1">Lakshmi Devi</h5>
+                                    <p class="text-muted">Organic farmer, Coimbatore</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="carousel-item">
+                            <div class="card border-0 shadow">
+                                <div class="card-body p-5 text-center">
+                                    <img src="https://images.unsplash.com/photo-1583602096973-37ca0307326d" alt="Farmer" class="rounded-circle mb-3" width="80" height="80" style="object-fit: cover;">
+                                    <p class="lead mb-4">"The quantum agriculture approach has made precision farming accessible to small farmers like me. I've been able to reduce water usage and increase productivity."</p>
+                                    <h5 class="mb-1">Sundaram Pillai</h5>
+                                    <p class="text-muted">Progressive farmer, Coimbatore</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="carousel-control-prev" type="button" data-bs-target="#testimonialCarousel" data-bs-slide="prev">
+                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Previous</span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#testimonialCarousel" data-bs-slide="next">
+                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Next</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="py-5 bg-primary text-white">
+    <div class="container text-center">
+        <h2 class="mb-4">Ready to Transform Your Farming?</h2>
+        <p class="lead mb-4">Join thousands of farmers in Coimbatore who are already benefiting from our quantum precision agriculture platform.</p>
+        {% if not current_user.is_authenticated %}
+        <a href="{{ url_for('register') }}" class="btn btn-light btn-lg me-3 mb-3">Register Now</a>
+        <a href="{{ url_for('login') }}" class="btn btn-outline-light btn-lg mb-3">Sign In</a>
+        {% else %}
+        <a href="{{ url_for('dashboard') }}" class="btn btn-light btn-lg">Go to Dashboard</a>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/weather.js') }}"></script>
+{% endblock %}

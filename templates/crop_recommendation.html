@@ -1,0 +1,425 @@
+{% extends 'layout.html' %}
+
+{% block title %}Crop Recommendation - Quantum Precision Agriculture{% endblock %}
+
+{% block content %}
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6 mb-4 mb-lg-0">
+                <h1>Quantum-Enhanced Crop Recommendations</h1>
+                <p class="lead">Get personalized crop recommendations for your farm based on soil type, previous crop, and current weather conditions in Coimbatore.</p>
+                <p>Our quantum algorithms analyze multiple variables to suggest the most suitable crops for optimal yield and sustainable farming.</p>
+            </div>
+            <div class="col-lg-6">
+                <img src="https://images.unsplash.com/photo-1598125442842-63db026783c7" alt="Soil sample analysis" class="img-fluid rounded shadow">
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="py-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8">
+                <!-- Recommendation Form -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-white">
+                        <h2 class="h3 mb-0">Get Crop Recommendation</h2>
+                    </div>
+                    <div class="card-body p-4">
+                        <form method="POST" action="{{ url_for('crop_recommendation') }}" id="crop-recommendation-form">
+                            {{ form.hidden_tag() }}
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-6 mb-3 mb-md-0">
+                                    <label for="land_type" class="form-label">Type of Land</label>
+                                    {{ form.land_type(class="form-select", id="land_type") }}
+                                    {% if form.land_type.errors %}
+                                        <div class="text-danger mt-1">
+                                            {% for error in form.land_type.errors %}
+                                                <small>{{ error }}</small>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="soil_type" class="form-label">Soil Type</label>
+                                    {{ form.soil_type(class="form-select", id="soil_type") }}
+                                    {% if form.soil_type.errors %}
+                                        <div class="text-danger mt-1">
+                                            {% for error in form.soil_type.errors %}
+                                                <small>{{ error }}</small>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-6 mb-3 mb-md-0">
+                                    <label for="previous_crop" class="form-label">Previous Crop</label>
+                                    {{ form.previous_crop(class="form-control", id="previous_crop", placeholder="e.g., Rice, Cotton, Maize") }}
+                                    {% if form.previous_crop.errors %}
+                                        <div class="text-danger mt-1">
+                                            {% for error in form.previous_crop.errors %}
+                                                <small>{{ error }}</small>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="previous_yield" class="form-label">Previous Yield (kg/acre)</label>
+                                    {{ form.previous_yield(class="form-control", id="previous_yield", placeholder="e.g., 2500") }}
+                                    {% if form.previous_yield.errors %}
+                                        <div class="text-danger mt-1">
+                                            {% for error in form.previous_yield.errors %}
+                                                <small>{{ error }}</small>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="quantum-optimization" checked>
+                                    <label class="form-check-label" for="quantum-optimization">
+                                        Apply quantum optimization algorithms for more accurate recommendations
+                                    </label>
+                                </div>
+                                <div id="quantum-info" class="mt-2 p-2 bg-light rounded small">
+                                    <i class="bi bi-info-circle-fill me-1 text-primary"></i>
+                                    Quantum optimization can improve recommendation accuracy by 15-25% by analyzing complex data patterns that traditional algorithms might miss.
+                                </div>
+                            </div>
+                            
+                            <div class="d-grid gap-2">
+                                {{ form.submit(class="btn btn-primary btn-lg") }}
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                
+                <!-- Current Weather -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-white">
+                        <h3 class="h4 mb-0">Current Weather Conditions</h3>
+                    </div>
+                    <div class="card-body">
+                        <div id="weather-widget" class="weather-widget" data-city="Coimbatore">
+                            <!-- Weather data will be loaded via JavaScript -->
+                            <div class="text-center p-3">
+                                <div class="spinner-border text-light" role="status">
+                                    <span class="visually-hidden">Loading weather data...</span>
+                                </div>
+                                <p class="mt-2 mb-0">Loading current weather...</p>
+                            </div>
+                        </div>
+                        <div class="text-center mt-3">
+                            <p class="text-muted"><i class="bi bi-info-circle me-1"></i> Weather conditions are factored into our crop recommendations</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Recommendation Result -->
+                {% if recommended_crop %}
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-success text-white">
+                        <h3 class="h4 mb-0">Recommendation Result</h3>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="text-center mb-4">
+                            <div class="display-4 mb-2">{{ recommended_crop }}</div>
+                            <p class="lead text-success">Recommended for your next crop cycle</p>
+                        </div>
+                        
+                        {% if crop_details %}
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h4 class="h5 mb-3">Crop Details</h4>
+                                <ul class="list-group list-group-flush">
+                                    <li class="list-group-item bg-transparent px-0">
+                                        <strong>Scientific Name:</strong> {{ crop_details.scientific_name }}
+                                    </li>
+                                    <li class="list-group-item bg-transparent px-0">
+                                        <strong>Growth Duration:</strong> {{ crop_details.growth_duration }}
+                                    </li>
+                                    <li class="list-group-item bg-transparent px-0">
+                                        <strong>Water Requirements:</strong> {{ crop_details.water_requirements }}
+                                    </li>
+                                    <li class="list-group-item bg-transparent px-0">
+                                        <strong>Optimal Temperature:</strong> {{ crop_details.optimal_temperature }}
+                                    </li>
+                                    <li class="list-group-item bg-transparent px-0">
+                                        <strong>Expected Yield:</strong> {{ crop_details.average_yield }}
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <h4 class="h5 mb-3">Why This Crop?</h4>
+                                <ul class="list-unstyled">
+                                    <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> Suitable for your {{ form.soil_type.data|replace('_', ' ')|title }}</li>
+                                    <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> Optimal for current season</li>
+                                    <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> Good rotation choice after {{ form.previous_crop.data }}</li>
+                                    <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> Matches current weather conditions</li>
+                                    <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> High market demand in Coimbatore</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <h4 class="h5 mb-3">Description</h4>
+                            <p>{{ crop_details.description }}</p>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <h4 class="h5 mb-3">Nutritional Requirements</h4>
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <div class="card bg-light">
+                                        <div class="card-body text-center">
+                                            <h5 class="h6 mb-2">Nitrogen</h5>
+                                            <div class="display-6">{{ crop_details.nutrition_requirements.nitrogen }}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <div class="card bg-light">
+                                        <div class="card-body text-center">
+                                            <h5 class="h6 mb-2">Phosphorus</h5>
+                                            <div class="display-6">{{ crop_details.nutrition_requirements.phosphorus }}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <div class="card bg-light">
+                                        <div class="card-body text-center">
+                                            <h5 class="h6 mb-2">Potassium</h5>
+                                            <div class="display-6">{{ crop_details.nutrition_requirements.potassium }}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle-fill me-2"></i>
+                            Detailed information for {{ recommended_crop }} is not available. Please check our Crop Guide for more information.
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Crop Rotation Visualization -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-white">
+                        <h3 class="h4 mb-0">Suggested Crop Rotation</h3>
+                    </div>
+                    <div class="card-body p-4">
+                        <div id="crop-rotation-visualization">
+                            <!-- Crop rotation visualization will be loaded via JavaScript -->
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            
+            <div class="col-lg-4">
+                <!-- Location Detection -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-white">
+                        <h3 class="h5 mb-0">Your Location</h3>
+                    </div>
+                    <div class="card-body">
+                        <p id="location-display">Click the button below to detect your location</p>
+                        <button id="get-location" class="btn btn-primary w-100">
+                            <i class="bi bi-geo-alt me-2"></i> Detect My Location
+                            <span id="location-spinner" class="spinner-border spinner-border-sm ms-2" role="status" style="display: none;"></span>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Soil Analysis -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-white">
+                        <h3 class="h5 mb-0">Soil Nutrient Analysis</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="soil-nutrient-chart"></canvas>
+                        </div>
+                        <div class="text-center mt-3">
+                            <small class="text-muted">Based on typical values for {{ form.soil_type.data|replace('_', ' ')|title if form.soil_type.data else 'selected soil type' }}</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Weather Forecast -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-white">
+                        <h3 class="h5 mb-0">Weather Forecast</h3>
+                    </div>
+                    <div class="card-body p-3">
+                        <div id="weather-forecast">
+                            <!-- Weather forecast will be loaded via JavaScript -->
+                            <div class="text-center py-4">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Loading forecast...</span>
+                                </div>
+                                <p class="mt-2 mb-0">Loading weather forecast...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Tips Section -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-white">
+                        <h3 class="h5 mb-0">Farming Tips</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex mb-3">
+                            <div class="me-3 text-primary">
+                                <i class="bi bi-droplet-fill fs-4"></i>
+                            </div>
+                            <div>
+                                <h4 class="h6 mb-1">Water Management</h4>
+                                <p class="mb-0 small">Early morning or evening watering reduces evaporation and ensures better absorption.</p>
+                            </div>
+                        </div>
+                        <div class="d-flex mb-3">
+                            <div class="me-3 text-success">
+                                <i class="bi bi-flower2 fs-4"></i>
+                            </div>
+                            <div>
+                                <h4 class="h6 mb-1">Intercropping</h4>
+                                <p class="mb-0 small">Consider planting companion crops to maximize land use and deter pests naturally.</p>
+                            </div>
+                        </div>
+                        <div class="d-flex mb-3">
+                            <div class="me-3 text-warning">
+                                <i class="bi bi-sun fs-4"></i>
+                            </div>
+                            <div>
+                                <h4 class="h6 mb-1">Season Timing</h4>
+                                <p class="mb-0 small">Planting at the right time increases crop success rates and reduces resource wastage.</p>
+                            </div>
+                        </div>
+                        <div class="d-flex">
+                            <div class="me-3 text-info">
+                                <i class="bi bi-moisture fs-4"></i>
+                            </div>
+                            <div>
+                                <h4 class="h6 mb-1">Soil Health</h4>
+                                <p class="mb-0 small">Regular soil testing helps maintain optimal nutrient levels for your crops.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Community Recommendations -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row mb-4">
+            <div class="col text-center">
+                <h2>Community Success Stories</h2>
+                <p class="lead">See how other farmers in Coimbatore region are succeeding with our recommendations</p>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-4 mb-4">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="rounded-circle overflow-hidden me-3">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="currentColor" class="bi bi-person-circle text-primary" viewBox="0 0 16 16">
+                                    <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/>
+                                    <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8zm8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1z"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <h4 class="h5 mb-0">Rajesh Kumar</h4>
+                                <p class="text-muted mb-0 small">Farmer, Pollachi</p>
+                            </div>
+                        </div>
+                        <p>"The quantum agriculture system recommended I switch from cotton to groundnut after the monsoon. My yield increased by 28% compared to my usual rotation!"</p>
+                        <div class="d-flex align-items-center mt-3">
+                            <span class="badge bg-primary me-2">Red Soil</span>
+                            <span class="badge bg-success me-2">Groundnut</span>
+                            <span class="badge bg-info">30% Yield Increase</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4 mb-4">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="rounded-circle overflow-hidden me-3">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="currentColor" class="bi bi-person-circle text-primary" viewBox="0 0 16 16">
+                                    <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/>
+                                    <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8zm8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1z"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <h4 class="h5 mb-0">Laxmi Devi</h4>
+                                <p class="text-muted mb-0 small">Farmer, Annur</p>
+                            </div>
+                        </div>
+                        <p>"After rice harvest, the system recommended pulses instead of my usual practice of growing rice again. This improved my soil health significantly and reduced my fertilizer costs."</p>
+                        <div class="d-flex align-items-center mt-3">
+                            <span class="badge bg-primary me-2">Clay Soil</span>
+                            <span class="badge bg-success me-2">Pulses</span>
+                            <span class="badge bg-info">Reduced Fertilizer Costs</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4 mb-4">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="rounded-circle overflow-hidden me-3">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="currentColor" class="bi bi-person-circle text-primary" viewBox="0 0 16 16">
+                                    <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/>
+                                    <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8zm8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1z"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <h4 class="h5 mb-0">Mohammed Ali</h4>
+                                <p class="text-muted mb-0 small">Farmer, Mettupalayam</p>
+                            </div>
+                        </div>
+                        <p>"The weather predictions combined with crop recommendations helped me plan my maize planting perfectly. I avoided losses during unexpected rain and maximized growth during ideal conditions."</p>
+                        <div class="d-flex align-items-center mt-3">
+                            <span class="badge bg-primary me-2">Loamy Soil</span>
+                            <span class="badge bg-success me-2">Maize</span>
+                            <span class="badge bg-info">Weather-Optimized Timing</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="text-center mt-3">
+            <a href="{{ url_for('user_recommendations') }}" class="btn btn-primary">
+                <i class="bi bi-people me-2"></i>Share Your Experience & View Community Recommendations
+            </a>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/weather.js') }}"></script>
+<script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+<script src="{{ url_for('static', filename='js/crop_recommendation.js') }}"></script>
+{% endblock %}
