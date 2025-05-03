@@ -61,3 +61,25 @@ class UserRecommendationForm(FlaskForm):
     content = TextAreaField('Your Experience/Recommendation', validators=[DataRequired()])
     crop_name = StringField('Crop Name', validators=[DataRequired(), Length(max=128)])
     submit = SubmitField('Share with Community')
+
+class ContactForm(FlaskForm):
+    email = StringField('Email Address', validators=[DataRequired(), Email(), Length(max=120)])
+    subject = StringField('Subject', validators=[DataRequired(), Length(max=128)])
+    message = TextAreaField('Message', validators=[DataRequired()])
+    inquiry_type = SelectField('Inquiry Type', choices=[
+        ('technical', 'Technical Support'),
+        ('agricultural', 'Agricultural Advice'),
+        ('feedback', 'Feedback/Suggestions'),
+        ('other', 'Other')
+    ], validators=[DataRequired()])
+    submit = SubmitField('Send Message')
+
+class AdminReplyForm(FlaskForm):
+    reply = TextAreaField('Reply Message', validators=[DataRequired()])
+    submit = SubmitField('Send Reply')
+
+class SearchHistorySearchForm(FlaskForm):
+    search_term = StringField('Search Term', validators=[Optional()])
+    start_date = StringField('Start Date', validators=[Optional()])
+    end_date = StringField('End Date', validators=[Optional()])
+    submit = SubmitField('Search')

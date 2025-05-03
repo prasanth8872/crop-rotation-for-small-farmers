@@ -1,6 +1,7 @@
 from datetime import datetime
 from app import db
 from flask_login import UserMixin
+import enum
 
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -103,3 +104,42 @@ class UserRecommendation(db.Model):
     
     def __repr__(self):
         return f'<UserRecommendation {self.id} by User {self.user_id}>'
+
+class ContactMessageStatus(enum.Enum):
+    NEW = 'new'
+    READ = 'read'
+    REPLIED = 'replied'
+    ARCHIVED = 'archived'
+
+class ContactMessage(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(120), nullable=False)
+    subject = db.Column(db.String(128))
+    message = db.Column(db.Text, nullable=False)
+    inquiry_type = db.Column(db.String(64))
+    status = db.Column(db.Enum(ContactMessageStatus), default=ContactMessageStatus.NEW)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)  # Optional relation to user if logged in
+    
+    # Admin reply
+    admin_reply = db.Column(db.Text)
+    replied_at = db.Column(db.DateTime)
+    
+    # Relationships
+    user = db.relationship('User', backref='contact_messages', lazy=True, foreign_keys=[user_id])
+    
+    def __repr__(self):
+        return f'<ContactMessage {self.id} from {self.email}>'
+
+class SearchHistory(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    search_term = db.Column(db.String(128))
+    search_type = db.Column(db.String(64))  # e.g., 'crop', 'soil', etc.
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Relationships
+    user = db.relationship('User', backref='search_history', lazy=True)
+    
+    def __repr__(self):
+        return f'<SearchHistory {self.id} by User {self.user_id}: {self.search_term}>'
