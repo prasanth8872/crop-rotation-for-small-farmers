@@ -77,6 +77,10 @@ class ContactForm(FlaskForm):
 class AdminReplyForm(FlaskForm):
     reply = TextAreaField('Reply Message', validators=[DataRequired()])
     submit = SubmitField('Send Reply')
+    
+class DeleteForm(FlaskForm):
+    """Empty form just for CSRF protection"""
+    submit = SubmitField('Delete')
 
 class SearchHistorySearchForm(FlaskForm):
     search_term = StringField('Search Term', validators=[Optional()])

@@ -8,7 +8,7 @@ import logging
 
 from app import app, db
 from models import User, Farm, SoilData, CropCycle, Query, WeatherData, UserRecommendation, ContactMessage, ContactMessageStatus, SearchHistory
-from forms import LoginForm, RegistrationForm, QueryForm, FarmForm, UserRecommendationForm, ContactForm, AdminReplyForm, SearchHistorySearchForm
+from forms import LoginForm, RegistrationForm, QueryForm, FarmForm, UserRecommendationForm, ContactForm, AdminReplyForm, SearchHistorySearchForm, DeleteForm
 from utils import get_weather_data, get_crop_recommendation
 from crop_data import crop_data
 
@@ -555,12 +555,18 @@ def admin_delete_message(message_id):
         flash('Access denied. Admin privileges required.', 'danger')
         return redirect(url_for('dashboard'))
     
-    message = ContactMessage.query.get_or_404(message_id)
-    
-    db.session.delete(message)
-    db.session.commit()
-    
-    flash('Message has been deleted.', 'success')
+    # Create and validate form for CSRF protection
+    form = DeleteForm()
+    if form.validate_on_submit():
+        message = ContactMessage.query.get_or_404(message_id)
+        
+        db.session.delete(message)
+        db.session.commit()
+        
+        flash('Message has been deleted.', 'success')
+    else:
+        flash('Invalid form submission. CSRF token missing or expired.', 'danger')
+        
     return redirect(url_for('admin_messages'))
 
 @app.route('/admin/message/<int:message_id>/archive', methods=['POST'])
@@ -570,12 +576,18 @@ def admin_archive_message(message_id):
         flash('Access denied. Admin privileges required.', 'danger')
         return redirect(url_for('dashboard'))
     
-    message = ContactMessage.query.get_or_404(message_id)
-    
-    message.status = ContactMessageStatus.ARCHIVED
-    db.session.commit()
-    
-    flash('Message has been archived.', 'success')
+    # Create and validate form for CSRF protection
+    form = DeleteForm()
+    if form.validate_on_submit():
+        message = ContactMessage.query.get_or_404(message_id)
+        
+        message.status = ContactMessageStatus.ARCHIVED
+        db.session.commit()
+        
+        flash('Message has been archived.', 'success')
+    else:
+        flash('Invalid form submission. CSRF token missing or expired.', 'danger')
+        
     return redirect(url_for('admin_messages'))
 
 # Admin search history management
