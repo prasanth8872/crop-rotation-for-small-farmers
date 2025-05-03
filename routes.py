@@ -499,7 +499,10 @@ def admin_messages():
     # Get all messages
     messages = ContactMessage.query.order_by(ContactMessage.created_at.desc()).all()
     
-    return render_template('admin/messages.html', messages=messages)
+    # Create DeleteForm for CSRF protection
+    form = DeleteForm()
+    
+    return render_template('admin/messages.html', messages=messages, form=form)
 
 @app.route('/admin/message/<int:message_id>')
 @login_required
@@ -515,9 +518,13 @@ def admin_view_message(message_id):
         message.status = ContactMessageStatus.READ
         db.session.commit()
     
+    # Create reply form
     form = AdminReplyForm()
     
-    return render_template('admin/view_message.html', message=message, form=form)
+    # Create delete form for CSRF protection
+    delete_form = DeleteForm()
+    
+    return render_template('admin/view_message.html', message=message, form=form, delete_form=delete_form)
 
 @app.route('/admin/message/<int:message_id>/reply', methods=['POST'])
 @login_required
