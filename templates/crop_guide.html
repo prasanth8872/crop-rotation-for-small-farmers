@@ -46,7 +46,7 @@
             {% for crop in crops %}
             <div class="col-lg-4 col-md-6 mb-4 crop-item" 
                  data-name="{{ crop.name.lower() }}" 
-                 data-soil="{{ crop.suitable_soil_types|join(' ').lower() }}">
+                 data-soil="{{ crop.suitable_soil_types|join(' ')|lower() }}">
                 <div class="card h-100 shadow-sm">
                     <div class="card-body">
                         <h3 id="{{ crop.name.lower().replace(' ', '-') }}" class="card-title h4 mb-3">{{ crop.name }}</h3>
