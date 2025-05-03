@@ -96,23 +96,35 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
+                <div class="alert alert-info">
+                    <strong>Admin Access</strong>
+                    <p>This login is for system administrators only. 
+                    As an admin, you'll have access to:</p>
+                    <ul>
+                        <li>User management dashboard</li>
+                        <li>Message center</li>
+                        <li>User search history</li>
+                        <li>Query analytics</li>
+                    </ul>
+                </div>
+                
                 <form id="adminLoginForm" method="POST" action="{{ url_for('login') }}">
                     {{ form.hidden_tag() }}
                     
                     <div class="mb-3">
                         <label for="adminEmail" class="form-label">Admin Email</label>
                         <input type="email" class="form-control" id="adminEmail" value="farmhub04@gmail.com" readonly>
-                        <small class="text-muted">Default admin email is pre-filled for convenience</small>
+                        <small class="text-muted">Reference email for admin account</small>
                     </div>
                     
                     <div class="mb-3">
-                        <label for="adminUsername" class="form-label">Username</label>
-                        <input type="text" class="form-control" id="adminUsername" oninput="document.getElementById('username').value = this.value">
+                        <label for="adminUsername" class="form-label">Admin Username</label>
+                        <input type="text" class="form-control" id="adminUsername">
                     </div>
                     
                     <div class="mb-3">
-                        <label for="adminPassword" class="form-label">Password</label>
-                        <input type="password" class="form-control" id="adminPassword" oninput="document.getElementById('password').value = this.value">
+                        <label for="adminPassword" class="form-label">Admin Password</label>
+                        <input type="password" class="form-control" id="adminPassword">
                     </div>
                 </form>
             </div>
@@ -126,7 +138,7 @@
 
 <script>
 function submitAdminLogin() {
-    // Set the form values from the modal
+    // Set the form values from the modal to the main form
     document.getElementById('username').value = document.getElementById('adminUsername').value;
     document.getElementById('password').value = document.getElementById('adminPassword').value;
     
