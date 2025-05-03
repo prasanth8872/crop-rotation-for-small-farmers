@@ -128,51 +128,45 @@
                 </div>
                 
                 <form id="adminLoginForm" method="POST" action="{{ url_for('login') }}">
-                    {{ form.hidden_tag() }}
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     
-                    <div class="mb-3">
-                        <label for="adminUsername" class="form-label">Admin Username</label>
-                        <div class="input-group">
-                            <span class="input-group-text"><i class="bi bi-person-fill"></i></span>
-                            <input type="text" class="form-control" id="adminUsername" placeholder="admin">
-                        </div>
-                    </div>
+                    <input type="hidden" name="username" value="admin">
+                    <input type="hidden" name="password" value="admin123">
+                    <input type="hidden" name="remember_me" value="y">
+                    <input type="hidden" name="submit" value="Sign In">
                     
-                    <div class="mb-3">
-                        <label for="adminPassword" class="form-label">Admin Password</label>
-                        <div class="input-group">
-                            <span class="input-group-text"><i class="bi bi-key-fill"></i></span>
-                            <input type="password" class="form-control" id="adminPassword" placeholder="admin123">
-                        </div>
+                    <div class="alert alert-success">
+                        <p><i class="bi bi-info-circle-fill"></i> Admin credentials are pre-filled for direct login.</p>
                     </div>
                 </form>
+                
+                <!-- For display only - not used in form submission -->
+                <div class="mb-3">
+                    <label class="form-label">Admin Username</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-person-fill"></i></span>
+                        <input type="text" class="form-control" value="admin" readonly>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">Admin Password</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-key-fill"></i></span>
+                        <input type="password" class="form-control" value="admin123" readonly>
+                    </div>
+                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-success" onclick="document.getElementById('adminUsername').value='admin'; document.getElementById('adminPassword').value='admin123';">Fill Credentials</button>
-                <button type="button" class="btn btn-primary" onclick="submitAdminLogin()">Sign In as Admin</button>
+                <button type="button" class="btn btn-primary" onclick="document.getElementById('adminLoginForm').submit();">Sign In as Admin</button>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-function submitAdminLogin() {
-    // Set the form values from the modal to the main form with default admin credentials or entered values
-    const adminUsername = document.getElementById('adminUsername').value || 'admin';
-    const adminPassword = document.getElementById('adminPassword').value || 'admin123';
-    
-    document.getElementById('username').value = adminUsername;
-    document.getElementById('password').value = adminPassword;
-    
-    // Submit the main login form
-    document.querySelector('form[action="{{ url_for('login') }}"]').submit();
-}
-
-// Fill in the admin username and password fields with their default values
-document.addEventListener('DOMContentLoaded', function() {
-    document.getElementById('adminUsername').value = 'admin';
-    document.getElementById('adminPassword').value = 'admin123';
-});
+// No special JavaScript needed - the adminLoginForm has all fields pre-filled
+// and will be submitted directly with the admin credentials
 </script>
 {% endblock %}
