@@ -49,8 +49,15 @@
                             </div>
                         </form>
                     </div>
-                    <div class="card-footer bg-light p-3 text-center">
-                        <p class="mb-0">Don't have an account? <a href="{{ url_for('register') }}">Register here</a></p>
+                    <div class="card-footer bg-light p-3">
+                        <div class="row">
+                            <div class="col-md-6 text-center">
+                                <p class="mb-0">Don't have an account? <a href="{{ url_for('register') }}">Register here</a></p>
+                            </div>
+                            <div class="col-md-6 text-center">
+                                <p class="mb-0"><a href="javascript:void(0)" data-bs-toggle="modal" data-bs-target="#adminLoginModal">Admin Login</a></p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -79,4 +86,52 @@
         </div>
     </div>
 </section>
+
+<!-- Admin Login Modal -->
+<div class="modal fade" id="adminLoginModal" tabindex="-1" aria-labelledby="adminLoginModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="adminLoginModalLabel">Admin Login</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="adminLoginForm" method="POST" action="{{ url_for('login') }}">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="mb-3">
+                        <label for="adminEmail" class="form-label">Admin Email</label>
+                        <input type="email" class="form-control" id="adminEmail" value="farmhub04@gmail.com" readonly>
+                        <small class="text-muted">Default admin email is pre-filled for convenience</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="adminUsername" class="form-label">Username</label>
+                        <input type="text" class="form-control" id="adminUsername" oninput="document.getElementById('username').value = this.value">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="adminPassword" class="form-label">Password</label>
+                        <input type="password" class="form-control" id="adminPassword" oninput="document.getElementById('password').value = this.value">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="submitAdminLogin()">Login as Admin</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function submitAdminLogin() {
+    // Set the form values from the modal
+    document.getElementById('username').value = document.getElementById('adminUsername').value;
+    document.getElementById('password').value = document.getElementById('adminPassword').value;
+    
+    // Submit the main login form
+    document.querySelector('form[action="{{ url_for('login') }}"]').submit();
+}
+</script>
 {% endblock %}
