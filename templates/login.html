@@ -128,7 +128,7 @@
                 </div>
                 
                 <form id="adminLoginForm" method="POST" action="{{ url_for('login') }}">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    {{ form.hidden_tag() }}
                     
                     <input type="hidden" name="username" value="admin">
                     <input type="hidden" name="password" value="admin123">
