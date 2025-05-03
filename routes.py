@@ -148,11 +148,33 @@ def dashboard():
     # Get user's latest queries
     queries = Query.query.filter_by(user_id=current_user.id).order_by(Query.submitted_at.desc()).limit(5).all()
     
+    # Get user's contact messages with replies
+    contact_messages = ContactMessage.query.filter_by(
+        user_id=current_user.id, 
+        status=ContactMessageStatus.REPLIED
+    ).order_by(ContactMessage.replied_at.desc()).limit(5).all()
+    
+    # Also check messages sent via email without login
+    email_messages = ContactMessage.query.filter_by(
+        email=current_user.email, 
+        status=ContactMessageStatus.REPLIED
+    ).order_by(ContactMessage.replied_at.desc()).limit(5).all()
+    
+    # Combine both message lists
+    all_messages = list(contact_messages)
+    for msg in email_messages:
+        if msg not in all_messages:
+            all_messages.append(msg)
+    
+    # Sort combined messages by replied_at date
+    all_messages.sort(key=lambda x: x.replied_at if x.replied_at else x.created_at, reverse=True)
+    
     return render_template('dashboard.html', 
                           farms=farms, 
                           crop_cycles=crop_cycles, 
                           weather=weather, 
-                          queries=queries)
+                          queries=queries,
+                          messages=all_messages[:5])
 
 # Admin dashboard
 @app.route('/admin/dashboard')

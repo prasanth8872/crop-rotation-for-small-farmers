@@ -107,17 +107,21 @@ def send_reply_email(contact_message):
     subject = f"Re: {contact_message.subject}"
     
     # Email content
+    # Replace newlines with <br> for HTML display
+    admin_reply_html = contact_message.admin_reply.replace('\n', '<br>')
+    message_html = contact_message.message.replace('\n', '<br>')
+    
     html_content = f"""
     <h2>Response to your inquiry</h2>
     <p>Thank you for contacting Quantum Precision Agriculture. Below is our response to your inquiry:</p>
     
     <div style="background-color: #f9f9f9; padding: 15px; border-left: 4px solid #28a745;">
-        {contact_message.admin_reply.replace('\n', '<br>')}
+        {admin_reply_html}
     </div>
     
     <p style="margin-top: 20px;"><strong>Your original message:</strong></p>
     <div style="background-color: #f9f9f9; padding: 15px; border-left: 4px solid #6c757d; color: #666;">
-        {contact_message.message.replace('\n', '<br>')}
+        {message_html}
     </div>
     
     <p style="margin-top: 20px;">If you have any further questions, please don't hesitate to contact us again.</p>

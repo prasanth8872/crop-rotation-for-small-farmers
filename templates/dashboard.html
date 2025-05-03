@@ -235,7 +235,7 @@
         </div>
         
         <!-- Recent Recommendations Row -->
-        <div class="row">
+        <div class="row mb-4">
             <div class="col">
                 <div class="card shadow-sm border-0">
                     <div class="card-header bg-white d-flex justify-content-between align-items-center">
@@ -273,6 +273,45 @@
                                 </tbody>
                             </table>
                         </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Message Replies Row -->
+        <div class="row">
+            <div class="col">
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><i class="bi bi-envelope me-2"></i>Message Replies</h5>
+                        <a href="{{ url_for('contact') }}" class="btn btn-sm btn-primary">Send New Message</a>
+                    </div>
+                    <div class="card-body p-0">
+                        {% if messages %}
+                            <div class="list-group list-group-flush">
+                                {% for message in messages %}
+                                    <div class="list-group-item p-3">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <h6 class="mb-0 text-primary">Re: {{ message.subject }}</h6>
+                                            <small class="text-muted">{{ message.replied_at.strftime('%d %b %Y') if message.replied_at else message.created_at.strftime('%d %b %Y') }}</small>
+                                        </div>
+                                        <div class="card mb-2">
+                                            <div class="card-body bg-light">
+                                                <p class="card-text mb-0">{{ message.admin_reply|nl2br }}</p>
+                                            </div>
+                                        </div>
+                                        <div class="d-flex">
+                                            <small class="text-muted me-2">Your original message:</small>
+                                            <small class="text-muted">{{ message.message|truncate(100) }}</small>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="text-center py-4">
+                                <p class="mb-0">No message replies yet. <a href="{{ url_for('contact') }}">Contact us</a> if you have any questions.</p>
+                            </div>
+                        {% endif %}
                     </div>
                 </div>
             </div>
