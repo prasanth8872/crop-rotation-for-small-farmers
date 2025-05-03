@@ -21,6 +21,14 @@ app = Flask(__name__)
 app.secret_key = os.environ.get("SESSION_SECRET", "quantum_agriculture_secret_key")
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)  # needed for url_for to generate with https
 
+# Custom Jinja2 filters
+@app.template_filter('nl2br')
+def nl2br_filter(text):
+    """Convert newlines to <br> tags for display in HTML"""
+    if text:
+        return text.replace('\n', '<br>')
+    return ""
+
 # Configure the database, using SQLite for development
 app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL", "sqlite:///quantum_agriculture.db")
 app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
