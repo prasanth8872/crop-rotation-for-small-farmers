@@ -73,6 +73,9 @@ def send_contact_notification(contact_message):
     # Email subject
     subject = f"New Contact Message: {contact_message.subject}"
     
+    # Prepare message with HTML line breaks
+    message_html = contact_message.message.replace('\n', '<br>')
+    
     # Email content
     html_content = f"""
     <h2>New Contact Message</h2>
@@ -81,7 +84,7 @@ def send_contact_notification(contact_message):
     <p><strong>Inquiry Type:</strong> {contact_message.inquiry_type}</p>
     <p><strong>Message:</strong></p>
     <div style="background-color: #f9f9f9; padding: 15px; border-left: 4px solid #007bff;">
-        {contact_message.message.replace('\n', '<br>')}
+        {message_html}
     </div>
     <p>Please log in to the admin dashboard to respond.</p>
     """
