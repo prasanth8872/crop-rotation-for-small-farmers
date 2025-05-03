@@ -12,6 +12,29 @@ from forms import LoginForm, RegistrationForm, QueryForm, FarmForm, UserRecommen
 from utils import get_weather_data, get_crop_recommendation
 from crop_data import crop_data
 
+# Helper function to log search history
+def log_search(user_id, search_term, search_type):
+    """
+    Log a search to the SearchHistory table
+    
+    Args:
+        user_id (int): ID of the user performing the search
+        search_term (str): The search query or term
+        search_type (str): Type of search (e.g., 'crop', 'soil', etc.)
+    """
+    try:
+        search_entry = SearchHistory(
+            user_id=user_id,
+            search_term=search_term,
+            search_type=search_type
+        )
+        db.session.add(search_entry)
+        db.session.commit()
+        logging.info(f"Search logged: {search_term} ({search_type}) by user {user_id}")
+    except Exception as e:
+        logging.error(f"Failed to log search: {str(e)}")
+        db.session.rollback()
+
 # Home page
 @app.route('/')
 def index():
@@ -272,6 +295,10 @@ def crop_recommendation():
         db.session.add(query)
         db.session.commit()
         
+        # Log this as a search
+        search_term = f"{form.soil_type.data} soil, {form.land_type.data} land, previous crop: {form.previous_crop.data}"
+        log_search(current_user.id, search_term, 'crop_recommendation')
+        
         flash(f'Based on your inputs, we recommend growing {recommended_crop} for your next crop cycle.', 'success')
         
         # Store result in session for display
@@ -373,7 +400,14 @@ def contact():
         db.session.add(contact_message)
         db.session.commit()
         
-        # TODO: Send email to admin (farmhub04@gmail.com) - will implement with SendGrid
+        # Send email notification to admin
+        try:
+            from email_service import send_contact_notification
+            send_contact_notification(contact_message)
+        except Exception as e:
+            logging.error(f"Failed to send contact notification email: {str(e)}")
+            # Failure to send email shouldn't affect user experience
+            pass
         
         flash('Your message has been sent! We will get back to you soon.', 'success')
         return redirect(url_for('contact'))
@@ -472,9 +506,15 @@ def admin_reply_message(message_id):
         message.status = ContactMessageStatus.REPLIED
         db.session.commit()
         
-        # TODO: Send email reply to user - will implement with SendGrid
+        # Send email reply to user
+        try:
+            from email_service import send_reply_email
+            send_reply_email(message)
+            flash('Your reply has been sent to the user!', 'success')
+        except Exception as e:
+            logging.error(f"Failed to send reply email: {str(e)}")
+            flash('Reply saved, but there was an issue sending the email. Check SendGrid settings.', 'warning')
         
-        flash('Your reply has been sent!', 'success')
         return redirect(url_for('admin_messages'))
     
     return render_template('admin/view_message.html', message=message, form=form)
