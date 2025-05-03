@@ -96,45 +96,61 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <div class="alert alert-info">
-                    <strong>Admin Access</strong>
-                    <p>This login is for system administrators only. 
-                    As an admin, you'll have access to:</p>
+                <div class="alert alert-primary mb-4">
+                    <h5 class="alert-heading"><i class="bi bi-shield-lock-fill"></i> Admin Access Portal</h5>
+                    <p>This login provides access to administrative features:</p>
                     <ul>
-                        <li>User management dashboard</li>
-                        <li>Message center</li>
-                        <li>User search history</li>
-                        <li>Query analytics</li>
+                        <li><strong>User Management:</strong> View, edit, and delete user accounts</li>
+                        <li><strong>Message Center:</strong> Respond to user inquiries</li>
+                        <li><strong>Search Analytics:</strong> Monitor user search patterns</li>
+                        <li><strong>Query Dashboard:</strong> Track crop recommendation usage</li>
                     </ul>
-                    <hr>
-                    <p><strong>Admin Login Details:</strong></p>
-                    <p>Username: <code>admin</code><br>
-                    Password: <code>admin123</code></p>
+                </div>
+                
+                <div class="card bg-light mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title">Admin Credentials</h5>
+                        <table class="table table-sm">
+                            <tr>
+                                <th>Email:</th>
+                                <td><code>farmhub04@gmail.com</code></td>
+                            </tr>
+                            <tr>
+                                <th>Username:</th>
+                                <td><code>admin</code></td>
+                            </tr>
+                            <tr>
+                                <th>Password:</th>
+                                <td><code>admin123</code></td>
+                            </tr>
+                        </table>
+                    </div>
                 </div>
                 
                 <form id="adminLoginForm" method="POST" action="{{ url_for('login') }}">
                     {{ form.hidden_tag() }}
                     
                     <div class="mb-3">
-                        <label for="adminEmail" class="form-label">Admin Email</label>
-                        <input type="email" class="form-control" id="adminEmail" value="farmhub04@gmail.com" readonly>
-                        <small class="text-muted">Reference email for admin account</small>
-                    </div>
-                    
-                    <div class="mb-3">
                         <label for="adminUsername" class="form-label">Admin Username</label>
-                        <input type="text" class="form-control" id="adminUsername">
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-person-fill"></i></span>
+                            <input type="text" class="form-control" id="adminUsername" placeholder="admin">
+                        </div>
                     </div>
                     
                     <div class="mb-3">
                         <label for="adminPassword" class="form-label">Admin Password</label>
-                        <input type="password" class="form-control" id="adminPassword">
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-key-fill"></i></span>
+                            <input type="password" class="form-control" id="adminPassword" placeholder="admin123">
+                        </div>
                     </div>
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary" onclick="submitAdminLogin()">Login as Admin</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success" onclick="document.getElementById('adminUsername').value='admin'; document.getElementById('adminPassword').value='admin123';">Fill Credentials</button>
+                <button type="button" class="btn btn-primary" onclick="submitAdminLogin()">Sign In as Admin</button>
             </div>
         </div>
     </div>
@@ -142,12 +158,21 @@
 
 <script>
 function submitAdminLogin() {
-    // Set the form values from the modal to the main form
-    document.getElementById('username').value = document.getElementById('adminUsername').value;
-    document.getElementById('password').value = document.getElementById('adminPassword').value;
+    // Set the form values from the modal to the main form with default admin credentials or entered values
+    const adminUsername = document.getElementById('adminUsername').value || 'admin';
+    const adminPassword = document.getElementById('adminPassword').value || 'admin123';
+    
+    document.getElementById('username').value = adminUsername;
+    document.getElementById('password').value = adminPassword;
     
     // Submit the main login form
     document.querySelector('form[action="{{ url_for('login') }}"]').submit();
 }
+
+// Fill in the admin username and password fields with their default values
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('adminUsername').value = 'admin';
+    document.getElementById('adminPassword').value = 'admin123';
+});
 </script>
 {% endblock %}
