@@ -7,8 +7,8 @@ import requests
 import logging
 
 from app import app, db
-from models import User, Farm, SoilData, CropCycle, Query, WeatherData, UserRecommendation
-from forms import LoginForm, RegistrationForm, QueryForm, FarmForm, UserRecommendationForm
+from models import User, Farm, SoilData, CropCycle, Query, WeatherData, UserRecommendation, ContactMessage, ContactMessageStatus, SearchHistory
+from forms import LoginForm, RegistrationForm, QueryForm, FarmForm, UserRecommendationForm, ContactForm, AdminReplyForm, SearchHistorySearchForm
 from utils import get_weather_data, get_crop_recommendation
 from crop_data import crop_data
 
@@ -170,6 +170,68 @@ def admin_users():
     
     return render_template('admin/users.html', users=users)
 
+@app.route('/admin/user/<int:user_id>/delete', methods=['POST'])
+@login_required
+def admin_delete_user(user_id):
+    if not current_user.is_admin:
+        flash('Access denied. Admin privileges required.', 'danger')
+        return redirect(url_for('dashboard'))
+    
+    user = User.query.get_or_404(user_id)
+    
+    # Don't allow deleting admins
+    if user.is_admin:
+        flash('Cannot delete admin users.', 'danger')
+        return redirect(url_for('admin_users'))
+    
+    # Delete the user
+    db.session.delete(user)
+    db.session.commit()
+    
+    flash(f'User {user.username} has been deleted.', 'success')
+    return redirect(url_for('admin_users'))
+
+@app.route('/admin/user/<int:user_id>/edit', methods=['GET', 'POST'])
+@login_required
+def admin_edit_user(user_id):
+    if not current_user.is_admin:
+        flash('Access denied. Admin privileges required.', 'danger')
+        return redirect(url_for('dashboard'))
+    
+    user = User.query.get_or_404(user_id)
+    
+    # Don't allow editing admins
+    if user.is_admin and user.id != current_user.id:
+        flash('Cannot edit other admin users.', 'danger')
+        return redirect(url_for('admin_users'))
+    
+    form = RegistrationForm(obj=user)
+    
+    if form.validate_on_submit():
+        user.username = form.username.data
+        user.email = form.email.data
+        user.first_name = form.first_name.data
+        user.last_name = form.last_name.data
+        user.phone = form.phone.data
+        user.address = form.address.data
+        user.city = form.city.data
+        user.state = form.state.data
+        
+        # Only update password if a new one is provided
+        if form.password.data:
+            user.password_hash = generate_password_hash(form.password.data)
+        
+        db.session.commit()
+        
+        flash(f'User {user.username} has been updated.', 'success')
+        return redirect(url_for('admin_users'))
+    
+    # Don't prefill password fields
+    form.password.data = ''
+    form.confirm_password.data = ''
+    
+    return render_template('admin/edit_user.html', form=form, user=user)
+
 @app.route('/admin/queries')
 @login_required
 def admin_queries():
@@ -294,9 +356,29 @@ def farms():
 def about():
     return render_template('about.html')
 
-@app.route('/contact')
+@app.route('/contact', methods=['GET', 'POST'])
 def contact():
-    return render_template('contact.html')
+    form = ContactForm()
+    
+    if form.validate_on_submit():
+        # Create a new contact message
+        contact_message = ContactMessage(
+            email=form.email.data,
+            subject=form.subject.data,
+            message=form.message.data,
+            inquiry_type=form.inquiry_type.data,
+            user_id=current_user.id if current_user.is_authenticated else None
+        )
+        
+        db.session.add(contact_message)
+        db.session.commit()
+        
+        # TODO: Send email to admin (farmhub04@gmail.com) - will implement with SendGrid
+        
+        flash('Your message has been sent! We will get back to you soon.', 'success')
+        return redirect(url_for('contact'))
+    
+    return render_template('contact.html', form=form)
 
 @app.route('/crop-guide')
 def crop_guide():
@@ -342,3 +424,126 @@ def page_not_found(e):
 @app.errorhandler(500)
 def internal_server_error(e):
     return render_template('500.html'), 500
+
+# Admin messages management
+@app.route('/admin/messages')
+@login_required
+def admin_messages():
+    if not current_user.is_admin:
+        flash('Access denied. Admin privileges required.', 'danger')
+        return redirect(url_for('dashboard'))
+    
+    # Get all messages
+    messages = ContactMessage.query.order_by(ContactMessage.created_at.desc()).all()
+    
+    return render_template('admin/messages.html', messages=messages)
+
+@app.route('/admin/message/<int:message_id>')
+@login_required
+def admin_view_message(message_id):
+    if not current_user.is_admin:
+        flash('Access denied. Admin privileges required.', 'danger')
+        return redirect(url_for('dashboard'))
+    
+    message = ContactMessage.query.get_or_404(message_id)
+    
+    # Update message status to READ if it's NEW
+    if message.status == ContactMessageStatus.NEW:
+        message.status = ContactMessageStatus.READ
+        db.session.commit()
+    
+    form = AdminReplyForm()
+    
+    return render_template('admin/view_message.html', message=message, form=form)
+
+@app.route('/admin/message/<int:message_id>/reply', methods=['POST'])
+@login_required
+def admin_reply_message(message_id):
+    if not current_user.is_admin:
+        flash('Access denied. Admin privileges required.', 'danger')
+        return redirect(url_for('dashboard'))
+    
+    message = ContactMessage.query.get_or_404(message_id)
+    form = AdminReplyForm()
+    
+    if form.validate_on_submit():
+        message.admin_reply = form.reply.data
+        message.replied_at = datetime.utcnow()
+        message.status = ContactMessageStatus.REPLIED
+        db.session.commit()
+        
+        # TODO: Send email reply to user - will implement with SendGrid
+        
+        flash('Your reply has been sent!', 'success')
+        return redirect(url_for('admin_messages'))
+    
+    return render_template('admin/view_message.html', message=message, form=form)
+
+@app.route('/admin/message/<int:message_id>/delete', methods=['POST'])
+@login_required
+def admin_delete_message(message_id):
+    if not current_user.is_admin:
+        flash('Access denied. Admin privileges required.', 'danger')
+        return redirect(url_for('dashboard'))
+    
+    message = ContactMessage.query.get_or_404(message_id)
+    
+    db.session.delete(message)
+    db.session.commit()
+    
+    flash('Message has been deleted.', 'success')
+    return redirect(url_for('admin_messages'))
+
+@app.route('/admin/message/<int:message_id>/archive', methods=['POST'])
+@login_required
+def admin_archive_message(message_id):
+    if not current_user.is_admin:
+        flash('Access denied. Admin privileges required.', 'danger')
+        return redirect(url_for('dashboard'))
+    
+    message = ContactMessage.query.get_or_404(message_id)
+    
+    message.status = ContactMessageStatus.ARCHIVED
+    db.session.commit()
+    
+    flash('Message has been archived.', 'success')
+    return redirect(url_for('admin_messages'))
+
+# Admin search history management
+@app.route('/admin/search-history')
+@login_required
+def admin_search_history():
+    if not current_user.is_admin:
+        flash('Access denied. Admin privileges required.', 'danger')
+        return redirect(url_for('dashboard'))
+    
+    form = SearchHistorySearchForm()
+    
+    # Get filter parameters
+    search_term = request.args.get('search_term', '')
+    start_date = request.args.get('start_date', '')
+    end_date = request.args.get('end_date', '')
+    
+    # Build query
+    query = SearchHistory.query
+    
+    if search_term:
+        query = query.filter(SearchHistory.search_term.ilike(f'%{search_term}%'))
+    
+    if start_date:
+        try:
+            start_date_obj = datetime.strptime(start_date, '%Y-%m-%d')
+            query = query.filter(SearchHistory.created_at >= start_date_obj)
+        except ValueError:
+            pass
+    
+    if end_date:
+        try:
+            end_date_obj = datetime.strptime(end_date, '%Y-%m-%d')
+            query = query.filter(SearchHistory.created_at <= end_date_obj)
+        except ValueError:
+            pass
+    
+    search_history = query.order_by(SearchHistory.created_at.desc()).all()
+    
+    return render_template('admin/search_history.html', search_history=search_history, form=form)

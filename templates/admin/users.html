@@ -1,337 +1,217 @@
 {% extends 'layout.html' %}
 
-{% block title %}User Management - Admin Dashboard{% endblock %}
+{% block title %}Admin - User Management{% endblock %}
 
 {% block content %}
-<section class="py-4">
-    <div class="container-fluid">
+<section class="py-5">
+    <div class="container">
+        <div class="row mb-4">
+            <div class="col-lg-8">
+                <h1 class="mb-3">User Management</h1>
+                <p class="lead">Manage user accounts and permissions</p>
+            </div>
+            <div class="col-lg-4 text-lg-end d-flex align-items-center justify-content-lg-end">
+                <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-primary">
+                    <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
+                </a>
+            </div>
+        </div>
+        
+        <div class="row mb-4">
+            <div class="col-lg-12">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Registered Users ({{ users|length }})</h5>
+                        <div class="input-group" style="max-width: 300px;">
+                            <input type="text" id="userSearchInput" class="form-control" placeholder="Search users...">
+                            <button class="btn btn-light" type="button">
+                                <i class="bi bi-search"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0" id="userTable">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Username</th>
+                                        <th>Name</th>
+                                        <th>Email</th>
+                                        <th>Location</th>
+                                        <th>Joined</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for user in users %}
+                                    <tr>
+                                        <td>{{ user.id }}</td>
+                                        <td>{{ user.username }}</td>
+                                        <td>{{ user.first_name }} {{ user.last_name }}</td>
+                                        <td>{{ user.email }}</td>
+                                        <td>{{ user.city }}, {{ user.state }}</td>
+                                        <td>{{ user.date_joined.strftime('%d-%m-%Y') }}</td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm">
+                                                <a href="{{ url_for('admin_edit_user', user_id=user.id) }}" class="btn btn-outline-primary" title="Edit User">
+                                                    <i class="bi bi-pencil"></i>
+                                                </a>
+                                                <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ user.id }}" title="Delete User">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </div>
+                                            
+                                            <!-- Delete Confirmation Modal -->
+                                            <div class="modal fade" id="deleteModal{{ user.id }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ user.id }}" aria-hidden="true">
+                                                <div class="modal-dialog">
+                                                    <div class="modal-content">
+                                                        <div class="modal-header">
+                                                            <h5 class="modal-title" id="deleteModalLabel{{ user.id }}">Confirm Delete</h5>
+                                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            <p>Are you sure you want to delete the user <strong>{{ user.username }}</strong>?</p>
+                                                            <p class="text-danger">This action cannot be undone. All user data will be permanently deleted.</p>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                            <form action="{{ url_for('admin_delete_user', user_id=user.id) }}" method="POST" class="d-inline">
+                                                                <button type="submit" class="btn btn-danger">Delete User</button>
+                                                            </form>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- User Statistics -->
         <div class="row">
-            <!-- Sidebar -->
-            <div class="col-md-3 col-lg-2 admin-sidebar">
-                <div class="list-group">
-                    <a href="{{ url_for('admin_dashboard') }}" class="list-group-item list-group-item-action">
-                        <i class="bi bi-speedometer2 me-2"></i> Dashboard
-                    </a>
-                    <a href="{{ url_for('admin_users') }}" class="list-group-item list-group-item-action active">
-                        <i class="bi bi-people me-2"></i> Users
-                    </a>
-                    <a href="{{ url_for('admin_queries') }}" class="list-group-item list-group-item-action">
-                        <i class="bi bi-search me-2"></i> Queries
-                    </a>
-                    <a href="{{ url_for('index') }}" class="list-group-item list-group-item-action">
-                        <i class="bi bi-house me-2"></i> Back to Site
-                    </a>
-                    <a href="{{ url_for('logout') }}" class="list-group-item list-group-item-action text-danger">
-                        <i class="bi bi-box-arrow-right me-2"></i> Logout
-                    </a>
+            <div class="col-md-6 mb-4">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0">User Registration Trend</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="userRegistrationChart" width="400" height="250"></canvas>
+                    </div>
                 </div>
             </div>
             
-            <!-- Main Content -->
-            <div class="col-md-9 col-lg-10 admin-content bg-light">
-                <div class="p-4">
-                    <div class="d-flex justify-content-between align-items-center mb-4">
-                        <h1 class="mb-0">User Management</h1>
-                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exportModal">
-                            <i class="bi bi-download me-2"></i>Export Data
-                        </button>
+            <div class="col-md-6 mb-4">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">User Location Distribution</h5>
                     </div>
-                    
-                    <!-- Search and Filter -->
-                    <div class="row mb-4">
-                        <div class="col-md-8 mb-3 mb-md-0">
-                            <div class="input-group">
-                                <input type="text" id="userSearch" class="form-control" placeholder="Search users by name, email, or location...">
-                                <button class="btn btn-primary" type="button">
-                                    <i class="bi bi-search"></i>
-                                </button>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <select id="userFilter" class="form-select">
-                                <option value="">All Users</option>
-                                <option value="recent">Recently Joined</option>
-                                <option value="location">By Location</option>
-                                <option value="active">Most Active</option>
-                            </select>
-                        </div>
+                    <div class="card-body">
+                        <canvas id="userLocationChart" width="400" height="250"></canvas>
                     </div>
-                    
-                    <!-- Users Table -->
-                    <div class="card border-0 shadow-sm">
-                        <div class="card-body p-0">
-                            <div class="table-responsive">
-                                <table class="table table-hover align-middle mb-0">
-                                    <thead class="table-light">
-                                        <tr>
-                                            <th>ID</th>
-                                            <th>Name</th>
-                                            <th>Username</th>
-                                            <th>Email</th>
-                                            <th>Location</th>
-                                            <th>Joined</th>
-                                            <th>Farms</th>
-                                            <th>Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {% if users %}
-                                            {% for user in users %}
-                                                <tr>
-                                                    <td>{{ user.id }}</td>
-                                                    <td>{{ user.first_name }} {{ user.last_name }}</td>
-                                                    <td>{{ user.username }}</td>
-                                                    <td>{{ user.email }}</td>
-                                                    <td>{{ user.city }}, {{ user.state }}</td>
-                                                    <td>{{ user.date_joined.strftime('%d %b %Y') }}</td>
-                                                    <td>
-                                                        <span class="badge bg-primary">{{ user.farms|length }}</span>
-                                                    </td>
-                                                    <td>
-                                                        <div class="btn-group">
-                                                            <button type="button" class="btn btn-sm btn-outline-primary view-user-btn" data-user-id="{{ user.id }}">
-                                                                <i class="bi bi-eye"></i>
-                                                            </button>
-                                                            <button type="button" class="btn btn-sm btn-outline-warning edit-user-btn" data-user-id="{{ user.id }}">
-                                                                <i class="bi bi-pencil"></i>
-                                                            </button>
-                                                            <button type="button" class="btn btn-sm btn-outline-danger delete-user-btn" data-user-id="{{ user.id }}">
-                                                                <i class="bi bi-trash"></i>
-                                                            </button>
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                            {% endfor %}
-                                        {% else %}
-                                            <tr>
-                                                <td colspan="8" class="text-center py-4">No users found</td>
-                                            </tr>
-                                        {% endif %}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Pagination -->
-                    <nav class="mt-4">
-                        <ul class="pagination justify-content-center">
-                            <li class="page-item disabled">
-                                <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Previous</a>
-                            </li>
-                            <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                            <li class="page-item"><a class="page-link" href="#">2</a></li>
-                            <li class="page-item"><a class="page-link" href="#">3</a></li>
-                            <li class="page-item">
-                                <a class="page-link" href="#">Next</a>
-                            </li>
-                        </ul>
-                    </nav>
                 </div>
             </div>
         </div>
     </div>
 </section>
 
-<!-- User View Modal -->
-<div class="modal fade" id="userViewModal" tabindex="-1" aria-labelledby="userViewModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="userViewModalLabel">User Details</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <div class="row">
-                    <div class="col-md-6">
-                        <h6>Personal Information</h6>
-                        <dl class="row">
-                            <dt class="col-sm-4">Name</dt>
-                            <dd class="col-sm-8" id="view-name">John Doe</dd>
-                            
-                            <dt class="col-sm-4">Username</dt>
-                            <dd class="col-sm-8" id="view-username">johndoe</dd>
-                            
-                            <dt class="col-sm-4">Email</dt>
-                            <dd class="col-sm-8" id="view-email">john@example.com</dd>
-                            
-                            <dt class="col-sm-4">Phone</dt>
-                            <dd class="col-sm-8" id="view-phone">+91 98765 43210</dd>
-                            
-                            <dt class="col-sm-4">Address</dt>
-                            <dd class="col-sm-8" id="view-address">123 Main St, Coimbatore</dd>
-                            
-                            <dt class="col-sm-4">Joined</dt>
-                            <dd class="col-sm-8" id="view-joined">10 Jan 2023</dd>
-                        </dl>
-                    </div>
-                    <div class="col-md-6">
-                        <h6>Farm Information</h6>
-                        <div id="view-farms">
-                            <div class="card mb-2">
-                                <div class="card-body p-3">
-                                    <h6 class="card-title">Sample Farm</h6>
-                                    <p class="card-text small mb-1">Location: Coimbatore South</p>
-                                    <p class="card-text small mb-1">Area: 2.5 acres</p>
-                                    <p class="card-text small mb-0">Soil: Red Soil</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <h6 class="mt-4">Recent Queries</h6>
-                <div class="table-responsive">
-                    <table class="table table-sm" id="view-queries-table">
-                        <thead>
-                            <tr>
-                                <th>Date</th>
-                                <th>Soil Type</th>
-                                <th>Previous Crop</th>
-                                <th>Recommended Crop</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>20 Jan 2023</td>
-                                <td>Red Soil</td>
-                                <td>Rice</td>
-                                <td>Groundnut</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Export Data Modal -->
-<div class="modal fade" id="exportModal" tabindex="-1" aria-labelledby="exportModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="exportModalLabel">Export User Data</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form>
-                    <div class="mb-3">
-                        <label class="form-label">Select Data to Export</label>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="" id="exportUsers" checked>
-                            <label class="form-check-label" for="exportUsers">
-                                User Information
-                            </label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="" id="exportFarms" checked>
-                            <label class="form-check-label" for="exportFarms">
-                                Farm Data
-                            </label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="" id="exportQueries" checked>
-                            <label class="form-check-label" for="exportQueries">
-                                Query History
-                            </label>
-                        </div>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label class="form-label">File Format</label>
-                        <select class="form-select">
-                            <option value="csv">CSV</option>
-                            <option value="excel">Excel</option>
-                            <option value="json">JSON</option>
-                        </select>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label class="form-label">Date Range</label>
-                        <div class="row">
-                            <div class="col">
-                                <input type="date" class="form-control" placeholder="Start Date">
-                            </div>
-                            <div class="col">
-                                <input type="date" class="form-control" placeholder="End Date">
-                            </div>
-                        </div>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary">Export Data</button>
-            </div>
-        </div>
-    </div>
-</div>
-{% endblock %}
-
-{% block extra_js %}
+{% block scripts %}
 <script>
+    // User search functionality
     document.addEventListener('DOMContentLoaded', function() {
-        // Handle view user button clicks
-        const viewUserBtns = document.querySelectorAll('.view-user-btn');
+        const searchInput = document.getElementById('userSearchInput');
+        const userTable = document.getElementById('userTable');
+        const rows = userTable.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
         
-        viewUserBtns.forEach(function(btn) {
-            btn.addEventListener('click', function() {
-                const userId = this.getAttribute('data-user-id');
+        searchInput.addEventListener('keyup', function() {
+            const searchTerm = searchInput.value.toLowerCase();
+            
+            for (let i = 0; i < rows.length; i++) {
+                const username = rows[i].getElementsByTagName('td')[1].textContent.toLowerCase();
+                const name = rows[i].getElementsByTagName('td')[2].textContent.toLowerCase();
+                const email = rows[i].getElementsByTagName('td')[3].textContent.toLowerCase();
+                const location = rows[i].getElementsByTagName('td')[4].textContent.toLowerCase();
                 
-                // In a real app, this would fetch user data from the server
-                // For now, we'll just show the modal with placeholder data
-                const modal = new bootstrap.Modal(document.getElementById('userViewModal'));
-                modal.show();
-                
-                // You would normally update the modal with actual user data here
-            });
+                if (username.includes(searchTerm) || name.includes(searchTerm) || 
+                    email.includes(searchTerm) || location.includes(searchTerm)) {
+                    rows[i].style.display = '';
+                } else {
+                    rows[i].style.display = 'none';
+                }
+            }
         });
         
-        // Handle edit user button clicks
-        const editUserBtns = document.querySelectorAll('.edit-user-btn');
-        
-        editUserBtns.forEach(function(btn) {
-            btn.addEventListener('click', function() {
-                const userId = this.getAttribute('data-user-id');
-                alert(`Edit user with ID: ${userId} (this would open an edit form in a real app)`);
-            });
-        });
-        
-        // Handle delete user button clicks
-        const deleteUserBtns = document.querySelectorAll('.delete-user-btn');
-        
-        deleteUserBtns.forEach(function(btn) {
-            btn.addEventListener('click', function() {
-                const userId = this.getAttribute('data-user-id');
-                if (confirm(`Are you sure you want to delete user with ID: ${userId}?`)) {
-                    alert(`User with ID: ${userId} would be deleted in a real app`);
+        // Initialize charts if Chart.js is loaded
+        if (window.Chart) {
+            // User registration chart - demo data
+            const userCtx = document.getElementById('userRegistrationChart').getContext('2d');
+            new Chart(userCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                    datasets: [{
+                        label: 'New Users',
+                        data: [5, 8, 12, 7, 10, 15],
+                        borderColor: 'rgba(23, 162, 184, 1)',
+                        backgroundColor: 'rgba(23, 162, 184, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.3,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        title: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
                 }
             });
-        });
-        
-        // Handle user search
-        const userSearch = document.getElementById('userSearch');
-        
-        if (userSearch) {
-            userSearch.addEventListener('input', function() {
-                // In a real app, this would filter the user table
-                console.log(`Searching for: ${this.value}`);
-            });
-        }
-        
-        // Handle user filter
-        const userFilter = document.getElementById('userFilter');
-        
-        if (userFilter) {
-            userFilter.addEventListener('change', function() {
-                // In a real app, this would filter the user table
-                console.log(`Filter selected: ${this.value}`);
+            
+            // User location chart - demo data
+            const locationCtx = document.getElementById('userLocationChart').getContext('2d');
+            new Chart(locationCtx, {
+                type: 'pie',
+                data: {
+                    labels: ['Coimbatore', 'Chennai', 'Madurai', 'Salem', 'Other'],
+                    datasets: [{
+                        data: [45, 20, 15, 10, 10],
+                        backgroundColor: [
+                            'rgba(40, 167, 69, 0.8)',
+                            'rgba(23, 162, 184, 0.8)',
+                            'rgba(0, 123, 255, 0.8)',
+                            'rgba(255, 193, 7, 0.8)',
+                            'rgba(108, 117, 125, 0.8)'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'right'
+                        }
+                    }
+                }
             });
         }
     });
 </script>
+{% endblock %}
+
 {% endblock %}

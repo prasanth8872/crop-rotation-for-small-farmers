@@ -54,15 +54,37 @@ with app.app_context():
     
     # Create admin user if it doesn't exist
     from werkzeug.security import generate_password_hash
-    admin = User.query.filter_by(email='admin@quantumagri.com').first()
-    if not admin:
+    admin_email = 'farmhub04@gmail.com'
+    
+    # First check by email
+    admin = User.query.filter_by(email=admin_email).first()
+    
+    # If not found by email, check for existing admin user
+    admin_user = User.query.filter_by(username='admin').first()
+    
+    if admin:
+        # Email exists, make sure it's an admin
+        if not admin.is_admin:
+            admin.is_admin = True
+            db.session.commit()
+            logging.info(f'User {admin_email} set as admin')
+    elif admin_user:
+        # Username 'admin' exists but with a different email
+        admin_user.email = admin_email
+        admin_user.is_admin = True
+        db.session.commit()
+        logging.info(f'Admin user updated with email {admin_email}')
+    else:
+        # Create new admin user
         admin = User(
-            username='admin',
-            email='admin@quantumagri.com',
+            username='farmhub_admin',
+            email=admin_email,
             password_hash=generate_password_hash('admin123'),
             is_admin=True,
             first_name='Admin',
-            last_name='User'
+            last_name='User',
+            city='Coimbatore',
+            state='Tamil Nadu'
         )
         db.session.add(admin)
         db.session.commit()
