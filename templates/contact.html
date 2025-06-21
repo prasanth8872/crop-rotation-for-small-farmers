@@ -25,12 +25,12 @@
                 <div class="card border-0 shadow-sm">
                     <div class="card-body p-4">
                         <h2 class="mb-4">Send Us a Message</h2>
-                        <form method="POST" action="{{ url_for('contact') }}">
+                        <form id="contactForm" method="POST" action="{{ url_for('contact') }}">
                             {{ form.hidden_tag() }}
                             
                             <div class="mb-3">
                                 <label for="email" class="form-label">Email Address</label>
-                                {{ form.email(class="form-control", id="email", placeholder="Enter your email") }}
+                                {{ form.email(class="form-control", id="email", placeholder="Enter your email", autocomplete="email") }}
                                 {% if form.email.errors %}
                                     <div class="text-danger mt-1">
                                         {% for error in form.email.errors %}
@@ -42,7 +42,7 @@
                             
                             <div class="mb-3">
                                 <label for="subject" class="form-label">Subject</label>
-                                {{ form.subject(class="form-control", id="subject", placeholder="What is this regarding?") }}
+                                {{ form.subject(class="form-control", id="subject", placeholder="What is this regarding?", autocomplete="off") }}
                                 {% if form.subject.errors %}
                                     <div class="text-danger mt-1">
                                         {% for error in form.subject.errors %}
@@ -54,7 +54,7 @@
                             
                             <div class="mb-3">
                                 <label for="message" class="form-label">Message</label>
-                                {{ form.message(class="form-control", id="message", rows="5", placeholder="Please provide details about your inquiry...") }}
+                                {{ form.message(class="form-control", id="message", rows="5", placeholder="Please provide details about your inquiry...", autocomplete="off") }}
                                 {% if form.message.errors %}
                                     <div class="text-danger mt-1">
                                         {% for error in form.message.errors %}
@@ -65,8 +65,8 @@
                             </div>
                             
                             <div class="mb-3">
-                                <label class="form-label">Inquiry Type</label>
-                                {{ form.inquiry_type(class="form-select") }}
+                                <label for="inquiry_type" class="form-label">Inquiry Type</label>
+                                {{ form.inquiry_type(class="form-select", id="inquiry_type", autocomplete="off") }}
                                 {% if form.inquiry_type.errors %}
                                     <div class="text-danger mt-1">
                                         {% for error in form.inquiry_type.errors %}
@@ -76,8 +76,9 @@
                                 {% endif %}
                             </div>
                             
-                            {{ form.submit(class="btn btn-primary") }}
-                            <i class="bi bi-send me-2"></i>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-send me-2"></i> Send Message
+                            </button>
                         </form>
                     </div>
                 </div>
@@ -275,18 +276,17 @@
                 // For now, we'll just show a success message
                 
                 const formData = {
-                    name: document.getElementById('name').value,
                     email: document.getElementById('email').value,
                     subject: document.getElementById('subject').value,
                     message: document.getElementById('message').value,
-                    inquiryType: document.querySelector('input[name="inquiryType"]:checked').value
+                    inquiryType: document.getElementById('inquiry_type').value
                 };
                 
                 // Display success message
                 contactForm.innerHTML = `
                     <div class="alert alert-success">
                         <h4 class="alert-heading">Message Sent!</h4>
-                        <p>Thank you for contacting us, ${formData.name}. We've received your message and will respond to your ${formData.inquiryType} inquiry within 24 hours.</p>
+                        <p>Thank you for contacting us. We've received your message and will respond to your ${formData.inquiryType} inquiry within 24 hours.</p>
                         <hr>
                         <p class="mb-0">Our team will contact you at ${formData.email}.</p>
                     </div>

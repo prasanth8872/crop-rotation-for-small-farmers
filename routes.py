@@ -70,20 +70,33 @@ def login():
     
     form = LoginForm()
     if form.validate_on_submit():
+        # Log the username being used for login
+        logging.info(f"Login attempt with username: {form.username.data}")
+        
+        # Check if the user exists in the database
         user = User.query.filter_by(username=form.username.data).first()
+        if user:
+            logging.info(f"User found: {user.username}, is_admin: {user.is_admin}")
+        else:
+            logging.warning(f"User not found: {form.username.data}")
+        
+        # Verify the password
         if user and check_password_hash(user.password_hash, form.password.data):
-            logging.info(f"User logged in: {user.username} (Admin: {user.is_admin})")
+            logging.info(f"Password verification successful for user: {user.username}")
             login_user(user, remember=form.remember_me.data)
             next_page = request.args.get('next')
             
             # Admin users are always redirected to admin dashboard
             if user.is_admin:
+                logging.info(f"Redirecting admin user {user.username} to admin dashboard.")
                 flash(f"Welcome back, Admin {user.username}!", 'success')
                 return redirect(next_page or url_for('admin_dashboard'))
             else:
+                logging.info(f"Redirecting regular user {user.username} to dashboard.")
                 flash(f"Welcome back, {user.first_name}!", 'success')
                 return redirect(next_page or url_for('dashboard'))
         else:
+            logging.warning(f"Invalid login attempt for username: {form.username.data}")
             flash('Invalid username or password', 'danger')
     
     return render_template('login.html', form=form)
@@ -441,7 +454,9 @@ def contact():
         flash('Your message has been sent! We will get back to you soon.', 'success')
         return redirect(url_for('contact'))
     
-    return render_template('contact.html', form=form)
+    # Pass a unique CSRF token id to the template
+    csrf_token_id = f"csrf_token_{id(form)}"
+    return render_template('contact.html', form=form, csrf_token_id=csrf_token_id)
 
 @app.route('/crop-guide')
 def crop_guide():
